@@ -25,13 +25,12 @@ function keyPressed(){
 }
 
 function draw() {
-  background(188, 184, 177);
-  lvl1AkademienMapA();
+  startScreen();
 }
 
 function startScreen(){
   fill(0);
-  rect(1000, 650, 1000, 650);
+  rect(0, 0, 1000, 650);
 }
 
 function chooseCharacter(){
@@ -60,13 +59,13 @@ function lvl1AkademienMapA() {
   rect(925, 260, 5, 320); //right side
   rect(900, 260, 30, 5); //bottom
 
-  rect(240, 510, 460, 70); //tables
+  rect(240, 530, 460, 50); //tables
   rect(150, 60, 80, 300); //bar
-  rect(270, 465, 30, 30); //bar stools
-  rect(370, 465, 30, 30); //bar stools 2
-  rect(470, 465, 30, 30); //bar stools 3
-  rect(560, 465, 30, 30); //bar stools 4
-  rect(650, 465, 30, 30); //bar stools 5
+  rect(270, 480, 30, 30); //bar stools
+  rect(370, 480, 30, 30); //bar stools 2
+  rect(470, 480, 30, 30); //bar stools 3
+  rect(560, 480, 30, 30); //bar stools 4
+  rect(650, 480, 30, 30); //bar stools 5
 
   rect(400, 390, 340, 5); //fence
   rect(735, 345, 5, 50); //fence
