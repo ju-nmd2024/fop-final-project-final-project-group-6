@@ -1,36 +1,48 @@
 //variables
+let mode;
+let titleScreen;
+
+//import start screen from "./start_screen.js";
+import titleArt from "./titleArt.js";
 
 function setup() {
   mode = 0;
   createCanvas(1000, 650);
+  console.log("canvas created");
   textAlign(CENTER);
   noStroke();
+
+  titleScreen = new titleArt(0,0, 1);
 }
 
 function startState(){
-clear();
-  if (mode==0)
+
+  if (mode === 0) {
     startScreen();
-  if (mode==1){
+  }
+  if (mode === 1){
     chooseCharacter();
   }
-  if (mode==2){
+  if (mode === 2){
 
   }
 }
 
 function keyPressed(){
-  if (keyCode===ENTER)
+  if (keyCode === ENTER)
     mode = 1;
 }
 
 function draw() {
+  startState();
   startScreen();
 }
 
 function startScreen(){
   fill(0);
   rect(0, 0, 1000, 650);
+
+  titleScreen.draw();
 }
 
 function chooseCharacter(){
