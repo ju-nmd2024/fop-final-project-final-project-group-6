@@ -1,18 +1,24 @@
 //variables
 
 let mode; // game mode: 0 = start screen, 1 = menu, 2 = collect drinks, 3 = dance floor
-let player; // current player object
-let drinks = []; // list of drinks on the floor
+let player; // current player 
+let drinks = []; // list of drinks on the dance floor
 let characterChoice = -1; // -1 no character selected yet
+let boundries = [];
 
 const drinkSize = 20; // size of the drinks
-const floorWidth = 1000;
-const floorHeight = 650;
+const width = 1000;
+const height = 650;
 
 function setup() {
-  createCanvas(floorWidth, floorHeight);
+  createCanvas(width, height);
   mode = 0; 
   textAlign(CENTER, CENTER);
+
+  player = new Player(100, 100);
+
+  boundries.push(new Boundary(100, 150, 50, 30));
+  boundries.push(new Boundary(100, 150, 50, 30));
 }
 
 function draw() {
@@ -39,8 +45,6 @@ function startScreen() {
   fill(255);
   textSize(20);
   text("Choose your character", width / 2, 400);
-
-  
 }
 
 function titleArt(){
@@ -181,11 +185,11 @@ function keyPressed() {
 
   if (key === '1') {
     characterChoice = 1; // (beginner)
-    player = new Player("Paulina", 10, floorHeight - 50, 5);
+    player = new Player("Paulina", 10, height - 50, 5);
     mode = 2; 
   } else if (key === '2') {
     characterChoice = 2; // (expert)
-    player = new Player("Agnes", 10, floorHeight - 50, 10); // faster movement
+    player = new Player("Agnes", 10, height - 50, 20); // faster movement
     mode = 2; 
   }
 }
@@ -194,6 +198,10 @@ function collectDrinks() {
   // Draw the player character
   player.update();
   player.show();
+
+  for (let boundary of boundries) {
+    boundary.show();
+  }
 
   // Spawn drinks randomly
   if (frameCount % 60 === 0) {
@@ -222,22 +230,23 @@ function danceFloor() {
   text("Time to Dance!", width / 2, height / 4);
 }
 
-// Player class to handle movement and energy
+// Player class, handles movement and energy
 class Player {
   constructor(name, x, y, speed) {
     this.name = name;
     this.x = x;
     this.y = y;
     this.speed = speed;
-    this.energy = 0; // The number of drinks collected
+    this.energy = 0; // number of drinks collected
   }
+  
 
   // player pos
   update() {
-    if (keyIsDown(65)) this.x -= this.speed;  //left
-    if (keyIsDown(68)) this.x += this.speed;  //right
-    if (keyIsDown(87)) this.y -= this.speed;  //up
-    if (keyIsDown(83)) this.y += this.speed;  //down 
+    if (keyIsDown(65) && !this.collides()) this.x -= this.speed;  //left
+    if (keyIsDown(68) && !this.collides()) this.x += this.speed;  //right
+    if (keyIsDown(87) && !this.collides()) this.y -= this.speed;  //up
+    if (keyIsDown(83) && !this.collides()) this.y += this.speed;  //down 
     
     this.x = constrain(this.x, 0, width - 50);
     this.y = constrain(this.y, 0, height - 50);
@@ -249,6 +258,15 @@ class Player {
     ellipse(this.x, this.y, 40, 40); // Draw the player as a circle
   }
 
+  collides() {  //collision
+    for (let boundary of boundries) {
+      if (boundary.collide(this)) {
+        return true; //if collide w boundary, stop movement
+      }
+    }
+    return false;
+  }
+
   // Check if the player collected a drink
   collect(drink) {
     let d = dist(this.x, this.y, drink.x, drink.y);
@@ -257,6 +275,43 @@ class Player {
       return true;
     }
     return false;
+  }
+}
+
+class Boundary {
+  constructor (x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+  }
+
+  show(){
+    fill(255, 0, 0, 150); 
+    noStroke();
+    rect(this.x, this.y, this.w, this.h);
+  }
+
+  collide(player) {
+    let playerLeft = player.x;
+    let playerRight = player.x + 40; // Assuming player is a 40x40 circle
+    let playerTop = player.y;
+    let playerBottom = player.y + 40;
+
+    let boundaryLeft = this.x;
+    let boundaryRight = this.x + this.w;
+    let boundaryTop = this.y;
+    let boundaryBottom = this.y + this.h
+
+    if (
+      playerRight > boundaryLeft &&
+      playerLeft < boundaryRight &&
+      playerBottom > boundaryTop &&
+      playerTop < boundaryBottom
+    ) {
+      return true; // Colliding
+    }
+    return false; // No collision
   }
 }
 
