@@ -1,20 +1,4 @@
-export default class titleArt {
-    constructor (x,y, scaleFactor) {
-        this.x = x;
-        this.y = y;
-        this.scaleFactor = scaleFactor;
-    }
-
-    draw()  {
-        translate(this.x, this.y);
-        scale(this.scaleFactor);
-        noStroke();
-
-        fill(252, 163, 17);
-        push();
-
-        fill(0);
-        rect(0,0, 1000, 650);
+    noStroke();
 
         //
 
@@ -130,10 +114,3 @@ export default class titleArt {
         rect(810, 320, 10, 20);
         rect(790, 270, 30, 20);
         rect(820, 320, 10, 10);
-
-        pop();
-
-    }
-}
-
-

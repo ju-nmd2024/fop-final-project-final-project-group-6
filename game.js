@@ -1,100 +1,147 @@
-//variables
-let mode;
-let titleScreen;
+let mode; // game mode: 0 = start screen, 1 = collect drinks, 2 = dance floor
+let player; // current player object
+let drinks = []; // list of drink objects on the floor
+let characterChoice = -1; // -1 means no character selected yet
 
-//import start screen from "./start_screen.js";
-import titleArt from "./titleArt.js";
+const drinkSize = 20; // size of the drinks
+const floorWidth = 1000;
+const floorHeight = 650;
 
 function setup() {
-  mode = 0;
-  createCanvas(1000, 650);
-  console.log("canvas created");
-  textAlign(CENTER);
-  noStroke();
-
-  titleScreen = new titleArt(0,0, 1);
-}
-
-function startState(){
-
-  if (mode === 0) {
-    startScreen();
-  }
-  if (mode === 1){
-    chooseCharacter();
-  }
-  if (mode === 2){
-
-  }
-}
-
-function keyPressed(){
-  if (keyCode === ENTER)
-    mode = 1;
+  createCanvas(floorWidth, floorHeight);
+  mode = 0; // Start with the start screen
+  textAlign(CENTER, CENTER);
 }
 
 function draw() {
-  startState();
-  startScreen();
+  background(255);
+
+  switch(mode) {
+    case 0:
+      startScreen();
+      break;
+    case 1:
+      collectDrinks();
+      break;
+    case 2:
+      danceFloor();
+      break;
+  }
 }
 
-function startScreen(){
+function startScreen() {
   fill(0);
-  rect(0, 0, 1000, 650);
+  textSize(40);
+  text("Last Night Was a Movie", width / 2, height / 4);
+  textSize(20);
+  text("Choose your character", width / 2, height / 2);
 
-  titleScreen.draw();
+  textSize(18);
+  text("Press 1 for Paulina (Beginner)", width / 2, height / 1.5);
+  text("Press 2 for Agnes (Expert)", width / 2, height / 1.3);
 }
 
-function chooseCharacter(){
-  
+// Handle character selection and start the game
+function keyPressed() {
+  if (key === '1') {
+    characterChoice = 1; // Paulina (beginner)
+    player = new Player("Paulina", 10, floorHeight - 50, 5);
+    mode = 1; // Switch to collect drinks
+  } else if (key === '2') {
+    characterChoice = 2; // Agnes (expert)
+    player = new Player("Agnes", 10, floorHeight - 50, 10); // faster movement
+    mode = 1; // Switch to collect drinks
+  }
 }
 
-function gamelvl1(){
+// Collect the drinks stage
+function collectDrinks() {
+  // Draw the player character
+  player.update();
+  player.show();
+
+  // Spawn drinks randomly
+  if (frameCount % 60 === 0) {
+    drinks.push(new Drink(random(100, width - 100), random(100, height - 100)));
+  }
+
+  // Draw all drinks
+  for (let drink of drinks) {
+    drink.show();
+    if (player.collect(drink)) {
+      drinks = drinks.filter(d => d !== drink); // Remove collected drink
+    }
+  }
+
+  // Next stage after collecting drinks
+  if (player.energy >= 3) {
+    mode = 2; // Switch to dance floor after collecting enough drinks
+  }
 }
 
-function gameOver(){
-}
-
-function resetGame(){
-}
-
-function lvl1AkademienMapA() {
+// Dance floor (Rhythm game) stage
+function danceFloor() {
+  // Placeholder for rhythm-based mechanics
   fill(0);
-  // rect(850, 100, 5, 5);
+  textSize(30);
+  text("Time to Dance!", width / 2, height / 4);
 
-  fill(0);
-  rect(80, 60, 820, 5); //top
-  rect(80, 60, 5, 520); //left side
-  rect(80, 580, 850, 5); //bottom
-  rect(900, 60, 5, 200); //right side
-
-  rect(925, 260, 5, 320); //right side
-  rect(900, 260, 30, 5); //bottom
-
-  rect(240, 530, 460, 50); //tables
-  rect(150, 60, 80, 300); //bar
-  rect(270, 480, 30, 30); //bar stools
-  rect(370, 480, 30, 30); //bar stools 2
-  rect(470, 480, 30, 30); //bar stools 3
-  rect(560, 480, 30, 30); //bar stools 4
-  rect(650, 480, 30, 30); //bar stools 5
-
-  rect(400, 390, 340, 5); //fence
-  rect(735, 345, 5, 50); //fence
-
-  fill(73, 80, 87);
-  rect(230, 60, 300, 100); //standing platform against bar
-  rect(800, 60, 100, 200); //standing platform against bathrooms
-
-  fill(186, 24, 27); //exits
-  rect(80, 400, 5, 150); //to next dancefloor
-  rect(590, 60, 150, 5); //to outside
-  rect(925, 265, 5, 90); //entrance
-
-  rect(925, 370, 5, 70); //nugget entrance
-
+  // Implement a simple rhythm placeholder:
+  // Draw 'beats' that the player needs to hit
+  if (frameCount % 60 === 0) {
+    let beatX = random(100, width - 100);
+    rect(beatX, 100, 30, 30);
+  }
 }
 
-function lvl1AkademienMapB()  {
+// Player class to handle movement and energy
+class Player {
+  constructor(name, x, y, speed) {
+    this.name = name;
+    this.x = x;
+    this.y = y;
+    this.speed = speed;
+    this.energy = 0; // The number of drinks collected
+  }
 
+  // Update player's position based on keys
+  update() {
+    if (keyIsDown(LEFT_ARROW)) this.x -= this.speed;
+    if (keyIsDown(RIGHT_ARROW)) this.x += this.speed;
+    if (keyIsDown(UP_ARROW)) this.y -= this.speed;
+    if (keyIsDown(DOWN_ARROW)) this.y += this.speed;
+    
+    this.x = constrain(this.x, 0, width - 50);
+    this.y = constrain(this.y, 0, height - 50);
+  }
+
+  // Show the player
+  show() {
+    fill(200, 0, 0); // Red color for the player
+    ellipse(this.x, this.y, 40, 40); // Draw the player as a circle
+  }
+
+  // Check if the player collected a drink
+  collect(drink) {
+    let d = dist(this.x, this.y, drink.x, drink.y);
+    if (d < 25) {
+      this.energy += 1;
+      return true;
+    }
+    return false;
+  }
+}
+
+// Drink class to spawn drinks on the dance floor
+class Drink {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+
+  // Show the drink
+  show() {
+    fill(252, 163, 17); // Orange color for the drink
+    rect(this.x, this.y, drinkSize, drinkSize);
+  }
 }
