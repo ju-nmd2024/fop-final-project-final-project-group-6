@@ -3,24 +3,56 @@ let beats = [];
 let beatSpeed = 5;
 let score = 0;
 let hitZoneY;
-let lastKey = '';
-let rightColor = color(0, 255, 0, 100);  // Transparent green
-let wrongColor = color(255, 0, 0, 100);  // Transparent red
+let feedbackColor = null;
+let feedbackAlpha = 0;
+let mode = 2;
 
 function setup() {
     createCanvas(1000, 650);
-    hitZoneY = height - 100;
-    textAlign(CENTER, CENTER);
-    player = new Player();
+    hitZoneY = height - 200;
+    player = {
+        x: 150,
+        y: height / 2,
+        size: 150,
+        armAction: "neutral"
+    };
 }
 
 function draw() {
     background(30);
+
+    if (feedbackColor) {
+        fill(feedbackColor[0], feedbackColor[1], feedbackColor[2], feedbackAlpha);
+        rect(0, 0, width, height);
+        feedbackAlpha -= 5;
+        if (feedbackAlpha <= 0) feedbackColor = null;
+    }
+
+    if (mode === 2) {
+        drawGameArea();
+        drawPlayer();
+    }
+}
+
+function drawGameArea() {
+    fill(0, 50, 100);
+    rect(width / 2, 0, width / 2, height); 
+
+    stroke(255, 100);
+    for (let i = 0; i < 5; i++) {
+        line(width / 2 + (i * 100), 0, width / 2 + (i * 100), height);
+    }
+
+    // Safe hit zone for key presses
+    fill(100, 200, 100, 100);
+    rect(width / 2, hitZoneY - 10, width / 2, 30);
+
     fill(255);
+    textSize(30);
+    text(`Score: ${score}`, width / 1.25, 50);
 
     if (frameCount % 60 === 0) {
-        let keyPressed = random([UP_ARROW, DOWN_ARROW, LEFT_ARROW, RIGHT_ARROW]);
-        beats.push(new Beat(keyPressed, random(width / 2 - 150, width / 2 - 50)));
+        beats.push(new Beat(random(width / 2 + 50, width - 50)));
     }
 
     for (let i = beats.length - 1; i >= 0; i--) {
@@ -29,76 +61,85 @@ function draw() {
 
         if (beats[i].y > height) {
             beats.splice(i, 1);
+            triggerFeedback([255, 0, 0]);
         }
     }
+}
 
+function drawPlayer() {
+    drawStylizedCharacter(player.x, player.y, player.armAction);
+}
+
+function drawStylizedCharacter(x, y, armAction) {
+    // Head
     fill(255);
-    textSize(30);
-    text('Score: ' + score, width / 2, 50);
+    ellipse(x, y - 80, 50, 50); // Bigger head for more character
 
-    player.show();
-    player.update();
+    // Body
+    fill(255, 200, 0);
+    rect(x - 20, y - 30, 40, 80); // A bit more stylish body
 
-    if (lastKey !== '') {
-        fill(lastKey === 'correct' ? rightColor : wrongColor);
-        rect(width / 2, hitZoneY - 40, width / 2, 50);
-        lastKey = '';
+    // Arms (more dynamic based on action)
+    if (armAction === "up") {
+        line(x - 50, y - 60, x + 50, y - 60); // Arms up
+    } else if (armAction === "down") {
+        line(x - 50, y + 60, x + 50, y + 60); // Arms down
+    } else if (armAction === "left") {
+        line(x - 50, y, x - 80, y + 30); // Arms left
+    } else if (armAction === "right") {
+        line(x + 50, y, x + 80, y + 30); // Arms right
     }
+
+    // Legs
+    line(x, y + 80, x - 40, y + 120); // Left leg
+    line(x, y + 80, x + 40, y + 120); // Right leg
 }
 
 function keyPressed() {
+    let actions = ["up", "down", "left", "right"];
+    if (keyCode === UP_ARROW) {
+        player.armAction = random(actions);
+    } else if (keyCode === DOWN_ARROW) {
+        player.armAction = random(actions);
+    } else if (keyCode === LEFT_ARROW) {
+        player.armAction = random(actions);
+    } else if (keyCode === RIGHT_ARROW) {
+        player.armAction = random(actions);
+    }
+
+    let correctKey = false;
     for (let i = beats.length - 1; i >= 0; i--) {
-        if (beats[i].y > hitZoneY - 10 && beats[i].y < hitZoneY + 10) {
-            if (beats[i].key === keyCode) {
-                score++;
-                lastKey = 'correct';
-            } else {
-                lastKey = 'wrong';
-            }
+        if (
+            beats[i].y > hitZoneY - 10 &&
+            beats[i].y < hitZoneY + 10 &&
+            beats[i].key === keyCode
+        ) {
+            score++;
             beats.splice(i, 1);
+            correctKey = true;
             break;
         }
     }
+
+    if (correctKey) {
+        triggerFeedback([0, 255, 0]);
+    } else {
+        triggerFeedback([255, 0, 0]);
+    }
 }
 
-class Player {
-    constructor() {
-        this.x = width - 200;
-        this.y = height - 200;
-        this.size = 50;
-    }
-
-    show() {
-        fill(200, 0, 0);
-        ellipse(this.x, this.y, this.size);
-    }
-
-    update() {
-        if (keyIsDown(UP_ARROW)) {
-            // Show up arms gesture
-            fill(200, 0, 0);
-            ellipse(this.x, this.y - 20, this.size / 2); // Arms up
-        } else if (keyIsDown(DOWN_ARROW)) {
-            // Show down arms gesture
-            fill(200, 0, 0);
-            ellipse(this.x, this.y + 20, this.size / 2); // Arms down
-        } else if (keyIsDown(LEFT_ARROW)) {
-            // Show left arms gesture
-            fill(200, 0, 0);
-            ellipse(this.x - 20, this.y, this.size / 2); // Arms left
-        } else if (keyIsDown(RIGHT_ARROW)) {
-            // Show right arms gesture
-            fill(200, 0, 0);
-            ellipse(this.x + 20, this.y, this.size / 2); // Arms right
-        }
-    }
+function triggerFeedback(color) {
+    feedbackColor = color;
+    feedbackAlpha = 100;
 }
 
 class Beat {
-    constructor(key, x) {
-        this.key = key;
+    constructor(x) {
         this.x = x;
         this.y = 0;
+        this.key = [UP_ARROW, DOWN_ARROW, LEFT_ARROW, RIGHT_ARROW][
+            Math.floor(random(4))
+        ];
     }
 
     update() {
@@ -107,18 +148,17 @@ class Beat {
 
     show() {
         fill(252, 160, 17);
-        rect(this.x, this.y, 50, 50);
+        ellipse(this.x + 25, this.y + 25, 50, 50);  // Use circle to represent the beats
+
         fill(255);
-        textSize(20);
-        text(this.getKeyName(), this.x + 25, this.y + 25);
+        textSize(30);
+        text(this.getKeyName(), this.x + 25, this.y + 25);  // Larger text for the arrows
     }
 
     getKeyName() {
-        switch (this.key) {
-            case UP_ARROW: return "↑";
-            case DOWN_ARROW: return "↓";
-            case LEFT_ARROW: return "←";
-            case RIGHT_ARROW: return "→";
-        }
+        if (this.key === UP_ARROW) return "↑";
+        if (this.key === DOWN_ARROW) return "↓";
+        if (this.key === LEFT_ARROW) return "←";
+        if (this.key === RIGHT_ARROW) return "→";
     }
 }
