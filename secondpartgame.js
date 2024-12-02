@@ -36,14 +36,13 @@ function draw() {
 
 function drawGameArea() {
     fill(0, 50, 100);
-    rect(width / 2, 0, width / 2, height); 
+    rect(width / 2, 0, width / 2, height);
 
     stroke(255, 100);
     for (let i = 0; i < 5; i++) {
         line(width / 2 + (i * 100), 0, width / 2 + (i * 100), height);
     }
 
-    // Safe hit zone for key presses
     fill(100, 200, 100, 100);
     rect(width / 2, hitZoneY - 10, width / 2, 30);
 
@@ -71,40 +70,37 @@ function drawPlayer() {
 }
 
 function drawStylizedCharacter(x, y, armAction) {
-    // Head
     fill(255);
-    ellipse(x, y - 80, 50, 50); // Bigger head for more character
+    ellipse(x, y - 80, 50, 50);
 
-    // Body
     fill(255, 200, 0);
-    rect(x - 20, y - 30, 40, 80); // A bit more stylish body
+    rect(x - 20, y - 30, 40, 80);
 
-    // Arms (more dynamic based on action)
     if (armAction === "up") {
-        line(x - 50, y - 60, x + 50, y - 60); // Arms up
+        line(x - 50, y - 60, x + 50, y - 60);
     } else if (armAction === "down") {
-        line(x - 50, y + 60, x + 50, y + 60); // Arms down
+        line(x - 50, y + 60, x + 50, y + 60);
     } else if (armAction === "left") {
-        line(x - 50, y, x - 80, y + 30); // Arms left
+        line(x - 50, y, x - 80, y + 30);
     } else if (armAction === "right") {
-        line(x + 50, y, x + 80, y + 30); // Arms right
+        line(x + 50, y, x + 80, y + 30);
     }
 
-    // Legs
-    line(x, y + 80, x - 40, y + 120); // Left leg
-    line(x, y + 80, x + 40, y + 120); // Right leg
+    line(x, y + 80, x - 40, y + 120);
+    line(x, y + 80, x + 40, y + 120);
 }
 
 function keyPressed() {
     let actions = ["up", "down", "left", "right"];
-    if (keyCode === UP_ARROW) {
-        player.armAction = random(actions);
-    } else if (keyCode === DOWN_ARROW) {
-        player.armAction = random(actions);
-    } else if (keyCode === LEFT_ARROW) {
-        player.armAction = random(actions);
-    } else if (keyCode === RIGHT_ARROW) {
-        player.armAction = random(actions);
+    
+    if (key === 'W' || key === 'w') {
+        player.armAction = "up";
+    } else if (key === 'S' || key === 's') {
+        player.armAction = "down";
+    } else if (key === 'A' || key === 'a') {
+        player.armAction = "left";
+    } else if (key === 'D' || key === 'd') {
+        player.armAction = "right";
     }
 
     let correctKey = false;
@@ -112,7 +108,7 @@ function keyPressed() {
         if (
             beats[i].y > hitZoneY - 10 &&
             beats[i].y < hitZoneY + 10 &&
-            beats[i].key === keyCode
+            beats[i].key === key
         ) {
             score++;
             beats.splice(i, 1);
@@ -137,9 +133,7 @@ class Beat {
     constructor(x) {
         this.x = x;
         this.y = 0;
-        this.key = [UP_ARROW, DOWN_ARROW, LEFT_ARROW, RIGHT_ARROW][
-            Math.floor(random(4))
-        ];
+        this.key = ['W', 'S', 'A', 'D'][Math.floor(random(4))].toUpperCase();
     }
 
     update() {
@@ -148,17 +142,17 @@ class Beat {
 
     show() {
         fill(252, 160, 17);
-        ellipse(this.x + 25, this.y + 25, 50, 50);  // Use circle to represent the beats
+        ellipse(this.x + 25, this.y + 25, 50, 50);
 
         fill(255);
         textSize(30);
-        text(this.getKeyName(), this.x + 25, this.y + 25);  // Larger text for the arrows
+        text(this.getKeyName(), this.x + 25, this.y + 25);
     }
 
     getKeyName() {
-        if (this.key === UP_ARROW) return "↑";
-        if (this.key === DOWN_ARROW) return "↓";
-        if (this.key === LEFT_ARROW) return "←";
-        if (this.key === RIGHT_ARROW) return "→";
+        if (this.key === 'W') return "W";
+        if (this.key === 'S') return "S";
+        if (this.key === 'A') return "A";
+        if (this.key === 'D') return "D";
     }
 }
