@@ -1,16 +1,18 @@
-//variables
+// variables
+let mode; 
+let player; 
+let drinks = []; 
+let characterChoice = -1; // -1: no character selected yet
+let boundries = []; //obstacles
 
-let camX = 0; //camer x offset
-let camY = 0; // camera y offset
-let mode; // game mode: 0 = start screen, 1 = menu, 2 = collect drinks, 3 = dance floor
-let player; // current player 
-let drinks = []; // list of drinks on the dance floor
-let characterChoice = -1; // -1 no character selected yet
-let boundries = [];
+const drinkSize = 20; 
+const width = 1000; 
+const height = 650; 
 
-const drinkSize = 20; // size of the drinks
-const width = 1000;
-const height = 650;
+let textSizeAnimation = 15; //text animation 
+let minTextSize = 15;
+let maxTextSize = 18;
+let sizeSpeedTextSize = 0.03
 
 function setup() {
   createCanvas(width, height);
@@ -26,15 +28,10 @@ function setup() {
 function draw() {
   background(0);
 
-  //camera following player
-  camX = constrain(player.x - width/2, 0, width - width);
-  camY = constrain(player.y - height / 2, 0, height - height);
-  push();
-  translate(-camX, -camY);
-
-  switch(mode) {
+  switch (mode) {
     case 0:
       startScreen();
+      startScreenTextAnimation();
       break;
     case 1:
       menu();
@@ -44,6 +41,7 @@ function draw() {
       break;
     case 3:
       danceFloor();
+      break;
   }
 
   pop();
@@ -53,16 +51,13 @@ function startScreen() {
   titleArt();
 
   fill(255);
-  textSize(20);
-  text("Choose your character", width / 2, 400);
+  textSize(textSizeAnimation);
+  text("PRESS ENTER TO START", width / 2, 430);
 }
 
-function titleArt(){
+function titleArt() {
   noStroke();
-  translate(50, 50);
-  scale(0.85, 0.8, 2);
 
-  push();
   //
 
   fill(252, 163, 17);
@@ -177,40 +172,32 @@ function titleArt(){
   rect(810, 320, 10, 20);
   rect(790, 270, 30, 20);
   rect(820, 320, 10, 10);
-
-  pop();
 }
 
 function menu() {
   textSize(18);
-  text("Press 1 for Paulina (Beginner)", width / 2, 580);
-  text("Press 2 for Agnes (Expert)", width / 2, 620);
-
-} //close menu
-
-function resetPos(newX, newY) {
-  player.x = newX;
-  player.y = newY;
+  fill(255);
+  text("Press 2 for Paulina (Beginner)", width / 2, 580);
+  text("Press 3 for Agnes (Expert)", width / 2, 620);
 }
 
-// Handle character selection and start the game    change to buttons
+// character selection and start the game
 function keyPressed() {
-  if (keyCode === ENTER)
-    mode = 1;
+  if (keyCode === ENTER) mode = 1;
 
-  if (key === '1') {
-    characterChoice = 1; // (beginner)
+  if (key === '2') {
+    characterChoice = 1; // Beginner
     player = new Player("Paulina", 10, height - 50, 5);
     mode = 2; 
-  } else if (key === '2') {
-    characterChoice = 2; // (expert)
-    player = new Player("Agnes", 10, height - 50, 20); // faster movement
+  } else if (key === '3') {
+    characterChoice = 2; // Expert
+    player = new Player("Agnes", 10, height - 50, 8); // Faster movement
     mode = 2; 
   }
 }
 
 function collectDrinks() {
-  // Draw the player character
+  // draw the player character
   player.update();
   player.show();
 
@@ -218,87 +205,83 @@ function collectDrinks() {
     boundary.show();
   }
 
-  // Spawn drinks randomly
+  // spawn drinks randomly
   if (frameCount % 60 === 0) {
     drinks.push(new Drink(random(100, width - 100), random(100, height - 100)));
   }
 
-  // Draw all drinks
-  for (let drink of drinks) {
+  // draw all drinks
+  for (let i = drinks.length - 1; i >= 0; i--) {
+    let drink = drinks[i];
     drink.show();
     if (player.collect(drink)) {
-      drinks = drinks.filter(d => d !== drink); // Remove collected drink
+      drinks.splice(i, 1); // remove collected drink
     }
   }
 
-  displayDrinkCount(player.energy);
+  displayDrinkCount();
 
-  // Next stage after collecting drinks
+  // call for if next stage after collecting drinks
   if (player.energy >= 3) {
-    mode = 3; // Switch to dance floor
+    mode = 3; // dance floor
   }
 }
 
-function displayDrinkCount()  {
+function displayDrinkCount() {
   fill(255);
   textSize(18);
-  text("Drinks Collected " + count, width / 2, 50);
+  text("Drinks Collected: " + player.energy, width / 2, 50);
 }
 
-// Dance floor 
 function danceFloor() {
   // Placeholder for rhythm-based mechanics
-  fill(0);
+  fill(255);
   textSize(30);
   text("Time to Dance!", width / 2, height / 4);
 }
 
-// Player class, handles movement and energy
+// Player class
 class Player {
   constructor(name, x, y, speed) {
     this.name = name;
     this.x = x;
     this.y = y;
     this.speed = speed;
-    this.energy = 0; // number of drinks collected
+    this.energy = 0; // Drinks collected
   }
-  
 
-  // player pos
   update() {
     let nextX = this.x;
     let nextY = this.y;
 
-    if (keyIsDown(65) && !this.collides()) this.x -= this.speed;  //left
-    if (keyIsDown(68) && !this.collides()) this.x += this.speed;  //right
-    if (keyIsDown(87) && !this.collides()) this.y -= this.speed;  //up
-    if (keyIsDown(83) && !this.collides()) this.y += this.speed;  //down 
-    
-    this.x = constrain(this.x, 0, width - 50);
-    this.y = constrain(this.y, 0, height - 50);
+    if (keyIsDown(65)) nextX -= this.speed; // A key (left)
+    if (keyIsDown(68)) nextX += this.speed; // D key (right)
+    if (keyIsDown(87)) nextY -= this.speed; // W key (up)
+    if (keyIsDown(83)) nextY += this.speed; // S key (down)
 
     if (!this.collides(nextX, nextY)) {
       this.x = nextX;
       this.y = nextY;
     }
+
+    this.x = constrain(this.x, 0, width - 50);
+    this.y = constrain(this.y, 0, height - 50);
   }
 
-  // actualy show the player
   show() {
-    fill(200, 0, 0); // Red color for the player
-    ellipse(this.x, this.y, 40, 40); // Draw the player as a circle
+    fill(200, 0, 0); 
+    ellipse(this.x, this.y, 40, 40); // player as a circle
   }
 
   collides(nextX, nextY) {
     for (let boundary of boundries) {
-      if (boundary.collideWithPlayer(nextX, nextY)) {
+      if (boundary.collide({ x: nextX, y: nextY })) {
         return true;
       }
     }
     return false;
   }
 
-  // Check if the player collected a drink
   collect(drink) {
     let d = dist(this.x, this.y, drink.x, drink.y);
     if (d < 25) {
@@ -309,34 +292,26 @@ class Player {
   }
 }
 
+
 class Boundary {
-  constructor (x, y, w, h) {
+  constructor(x, y, w, h) {
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
   }
 
-  show(){
+  show() {
     fill(255, 0, 0, 150); 
     noStroke();
     rect(this.x, this.y, this.w, this.h);
   }
 
-  collideWithPlayer(nextX, nextY) {
-    return (
-      nextX + 20 > this.x &&
-      nextX - 20 < this.x + this.w &&
-      nextY + 20 > this.y &&
-      nextY - 20 < this.y + this.h
-    );
-  }
-
   collide(player) {
-    let playerLeft = player.x;
-    let playerRight = player.x + 40; // Assuming player is a 40x40 circle
-    let playerTop = player.y;
-    let playerBottom = player.y + 40;
+    let playerLeft = player.x - 20; 
+    let playerRight = player.x + 20; 
+    let playerTop = player.y - 20; 
+    let playerBottom = player.y + 20;
 
     let boundaryLeft = this.x;
     let boundaryRight = this.x + this.w;
@@ -349,22 +324,32 @@ class Boundary {
       playerBottom > boundaryTop &&
       playerTop < boundaryBottom
     ) {
-      return true; // Colliding
+      return true; 
     }
-    return false; // No collision
+    return false; 
   }
 }
 
-// Drink class to spawn drinks on the dance floor
 class Drink {
   constructor(x, y) {
     this.x = x;
     this.y = y;
   }
 
-  // Show the drink
   show() {
-    fill(252, 163, 17); // Orange color for the drink
+    fill(252, 163, 17); // drink color
     rect(this.x, this.y, drinkSize, drinkSize);
   }
+}
+
+function startScreenTextAnimation(){
+  textSizeAnimation = map(sin(frameCount * sizeSpeedTextSize), -1.0, 1.0, minTextSize, maxTextSize);
+  /*
+line 343 taken from mo.h, George Profenza, 
+& Kevin Workman. (2016, February 2). How to make the size of 
+ellipse to get smaller and bigger in processing automatically. 
+Stack Overflow. 
+https://stackoverflow.com/questions/35156661/how-to-make-the-size-of-ellipse-to-get-smaller-and-bigger-in-processing-automati 
+, reworked by enickles on p5js https://editor.p5js.org/enickles/sketches/SkDt1quAX
+ */
 }
