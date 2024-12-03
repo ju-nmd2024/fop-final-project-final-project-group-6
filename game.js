@@ -1,5 +1,6 @@
 //variables
 
+let mapImage;
 let camX = 0; //camer x offset
 let camY = 0; // camera y offset
 let mode; // game mode: 0 = start screen, 1 = menu, 2 = collect drinks, 3 = dance floor
@@ -11,6 +12,11 @@ let boundries = [];
 const drinkSize = 20; // size of the drinks
 const width = 1000;
 const height = 650;
+
+function preload() {
+  // Load the map image
+  mapImage = loadImage('./images/game_friendly_map_1000x650.png');
+}
 
 function setup() {
   createCanvas(width, height);
