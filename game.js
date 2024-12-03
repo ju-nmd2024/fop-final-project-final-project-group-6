@@ -1,5 +1,7 @@
 //variables
 
+let camX = 0; //camer x offset
+let camY = 0; // camera y offset
 let mode; // game mode: 0 = start screen, 1 = menu, 2 = collect drinks, 3 = dance floor
 let player; // current player 
 let drinks = []; // list of drinks on the dance floor
@@ -24,6 +26,12 @@ function setup() {
 function draw() {
   background(0);
 
+  //camera following player
+  camX = constrain(player.x - width/2, 0, width - width);
+  camY = constrain(player.y - height / 2, 0, height - height);
+  push();
+  translate(-camX, -camY);
+
   switch(mode) {
     case 0:
       startScreen();
@@ -37,6 +45,8 @@ function draw() {
     case 3:
       danceFloor();
   }
+
+  pop();
 }
 
 function startScreen() {
