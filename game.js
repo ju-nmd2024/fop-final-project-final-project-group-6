@@ -10,7 +10,7 @@ let boundries = []; //obstacles
 let textSizeAnimation = 15; //text animation 
 let minTextSize = 15;
 let maxTextSize = 18;
-let sizeSpeedTextSize = 0.03
+let sizeSpeedTextSize = 0.03;
 
 function preload() {
   // Load the map image
@@ -47,7 +47,6 @@ function draw() {
       break;
   }
 
-  pop();
 }
 
 function startScreen() {
@@ -325,8 +324,8 @@ class Boundary {
       playerRight > boundaryLeft &&
       playerLeft < boundaryRight &&
       playerBottom > boundaryTop &&
-      playerTop < boundaryBottom
-    ) 
+      playerTop < boundaryBottom 
+    ) ;
   }
 }
 
