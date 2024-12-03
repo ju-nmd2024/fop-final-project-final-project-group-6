@@ -18,7 +18,7 @@ function setup() {
   player = new Player(100, 100);
 
   boundries.push(new Boundary(100, 150, 50, 30));
-  boundries.push(new Boundary(100, 150, 50, 30));
+  boundries.push(new Boundary(200, 350, 50, 30));
 }
 
 function draw() {
@@ -171,12 +171,17 @@ function titleArt(){
   pop();
 }
 
-function menu(){
+function menu() {
   textSize(18);
   text("Press 1 for Paulina (Beginner)", width / 2, 580);
   text("Press 2 for Agnes (Expert)", width / 2, 620);
 
 } //close menu
+
+function resetPos(newX, newY) {
+  player.x = newX;
+  player.y = newY;
+}
 
 // Handle character selection and start the game    change to buttons
 function keyPressed() {
@@ -216,10 +221,18 @@ function collectDrinks() {
     }
   }
 
+  displayDrinkCount(player.energy);
+
   // Next stage after collecting drinks
   if (player.energy >= 3) {
-    mode = 3; // Switch to dance floor after collecting enough drinks
+    mode = 3; // Switch to dance floor
   }
+}
+
+function displayDrinkCount()  {
+  fill(255);
+  textSize(18);
+  text("Drinks Collected " + count, width / 2, 50);
 }
 
 // Dance floor 
@@ -243,6 +256,9 @@ class Player {
 
   // player pos
   update() {
+    let nextX = this.x;
+    let nextY = this.y;
+
     if (keyIsDown(65) && !this.collides()) this.x -= this.speed;  //left
     if (keyIsDown(68) && !this.collides()) this.x += this.speed;  //right
     if (keyIsDown(87) && !this.collides()) this.y -= this.speed;  //up
@@ -250,6 +266,11 @@ class Player {
     
     this.x = constrain(this.x, 0, width - 50);
     this.y = constrain(this.y, 0, height - 50);
+
+    if (!this.collides(nextX, nextY)) {
+      this.x = nextX;
+      this.y = nextY;
+    }
   }
 
   // actualy show the player
@@ -258,10 +279,10 @@ class Player {
     ellipse(this.x, this.y, 40, 40); // Draw the player as a circle
   }
 
-  collides() {  //collision
+  collides(nextX, nextY) {
     for (let boundary of boundries) {
-      if (boundary.collide(this)) {
-        return true; //if collide w boundary, stop movement
+      if (boundary.collideWithPlayer(nextX, nextY)) {
+        return true;
       }
     }
     return false;
@@ -292,6 +313,15 @@ class Boundary {
     rect(this.x, this.y, this.w, this.h);
   }
 
+  collideWithPlayer(nextX, nextY) {
+    return (
+      nextX + 20 > this.x &&
+      nextX - 20 < this.x + this.w &&
+      nextY + 20 > this.y &&
+      nextY - 20 < this.y + this.h
+    );
+  }
+
   collide(player) {
     let playerLeft = player.x;
     let playerRight = player.x + 40; // Assuming player is a 40x40 circle
@@ -301,7 +331,7 @@ class Boundary {
     let boundaryLeft = this.x;
     let boundaryRight = this.x + this.w;
     let boundaryTop = this.y;
-    let boundaryBottom = this.y + this.h
+    let boundaryBottom = this.y + this.h;
 
     if (
       playerRight > boundaryLeft &&
