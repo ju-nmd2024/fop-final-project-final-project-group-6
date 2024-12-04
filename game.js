@@ -167,16 +167,12 @@ function draw() {
       gameCompleted();
       break;
     case 6:
-      gameOver();  // Game over state
+      gameOver();
       break;
   }
 
+  // Only update and show the player in mode 2
   if (mode === 2 && player) {
-    displayCollectDrinksUI();
-  }
-
-  // Ensure `player` is initialized before trying to update or show
-  if (player) {
     player.update();
     player.show();
   }
@@ -199,11 +195,11 @@ function keyPressed() {
     }
   } else if (mode === 1) {
     if (key === "2") {
-      player = new Player("Paulina", 10, height - 50, 5);
+      player = new Player("Paulina", 10, height - 50, 4);
       mode = 2;
       startDrinkChallenge();
     } else if (key === "3" && agnesUnlocked) {
-      player = new Player("Agnes", 10, height - 50, 8);
+      player = new Player("Agnes", 10, height - 50, 7);
       mode = 2;
       startDrinkChallenge();
     }
@@ -282,16 +278,17 @@ function startDrinkChallenge() {
 
 function checkChallengeOutcome() {
   if (drinksCollected >= 30) {
-    // Player successfully collected 30 drinks, move to next stage
-    clearInterval(timerInterval);
-    mode = 3; // Transition to "Get Ready to Dance!" screen
-    getReadyStartTime = millis();
+    clearInterval(timerInterval);  // Stop the timer
+    player = null;  // Remove the player when transitioning
+    mode = 3;  // Transition to the Get Ready Screen
+    getReadyStartTime = millis();  // Start the get ready timer
   } else if (timer <= 0) {
-    // Time ran out, s
-    clearInterval(timerInterval);
-    mode = 6;  // Transition to "Game Over" screen
+    clearInterval(timerInterval);  // Stop the timer
+    player = null;  // Remove the player when transitioning
+    mode = 6;  // Transition to Game Over screen
   }
 }
+
 
 function getReadyScreen() {
   fill(255);
