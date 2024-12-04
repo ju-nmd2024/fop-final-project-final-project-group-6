@@ -1,5 +1,5 @@
 
-function setup(){
+function setup() {
     createCanvas(1000, 650);
 }
 
@@ -7,17 +7,18 @@ let x = 100;
 let y = 100;
 let speed = -1.7;
 
+drawAgnesUnlocked();
+
 function drawAgnesUnlocked(){
-    push();
     noStroke();
     translate(x, y);
 
     //face color
-    fill(214, 159, 126);
+    fill(96, 73, 90);
     rect(90, 120, 130, 80);
 
     //eyes
-    fill(87, 64, 46);
+    fill(47, 34, 53);
     rect(180, 150, 15, 5);
     rect(175, 155, 5, 15);
     rect(195, 155, 5, 15);
@@ -37,13 +38,13 @@ function drawAgnesUnlocked(){
     rect(130, 155, 10, 15);
 
     //mouth
-    fill(87, 64, 46);
+    fill(47, 34, 53);
     rect(155, 175, 5, 5);
     rect(160, 180, 10, 5);
     rect(170, 175, 5, 5);
 
     //hair
-    fill(119, 73, 54);
+    fill(47, 34, 53);
     rect(110, 50, 90, 80);
     rect(100, 60, 10, 90);
     rect(90, 70, 10, 110);
@@ -55,7 +56,7 @@ function drawAgnesUnlocked(){
 
 
     //skin color
-    fill(195, 142, 112);
+    fill(63, 50, 68);
     rect(150, 120, 20, 10);
     rect(110, 130, 40, 10);
     rect(170, 130, 30, 10);
@@ -65,7 +66,7 @@ function drawAgnesUnlocked(){
     rect(190, 180, 10, 10);
 
     //face outline
-    fill(255);
+    fill(41, 32, 58);
     rect(110, 40, 90, 10);
     rect(100, 50, 10, 10);
     rect(80, 60, 20, 10);
@@ -84,15 +85,12 @@ function drawAgnesUnlocked(){
     rect(200, 50, 10, 10);
 
 
-    fill(195, 142, 112);
+    fill(63, 50, 68);
     rect(200, 130, 10, 10);
-
-    fill(214, 159, 126);
-    rect(210, 160, 10, 0);
-    pop();
 }
 
-function movingAgnesUnlocked(){
+function movingAgnesLocked(){
+    drawAgnesUnlocked();
     clear();
     drawAgnesUnlocked();
 
@@ -103,6 +101,6 @@ function movingAgnesUnlocked(){
   }
 }
 
-function draw(){
-    movingAgnesUnlocked();
+function draw() {
+    movingAgnesLocked();
 }
