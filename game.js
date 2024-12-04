@@ -209,18 +209,17 @@ function keyPressed() {
     let matched = false;
     for (let i = beats.length - 1; i >= 0; i--) {
       if (
-        beats[i].y > height - 100 &&
-        beats[i].y < height - 50 &&
-        ((beats[i].key === "UP" && keyCode === UP_ARROW) ||
-          (beats[i].key === "DOWN" && keyCode === DOWN_ARROW) ||
-          (beats[i].key === "LEFT" && keyCode === LEFT_ARROW) ||
-          (beats[i].key === "RIGHT" && keyCode === RIGHT_ARROW))
+          beats[i].y > height - 100 &&
+          beats[i].y < height - 50 &&
+          ((beats[i].key === "UP" && keyCode === UP_ARROW) ||
+           (beats[i].key === "DOWN" && keyCode === DOWN_ARROW) ||
+           (beats[i].key === "LEFT" && keyCode === LEFT_ARROW) ||
+           (beats[i].key === "RIGHT" && keyCode === RIGHT_ARROW))
       ) {
-        beats.splice(i, 1);
-        triggerFeedback("win");
-        matched = true;
-        score++;
-        break;
+          beats.splice(i, 1); // Remove the matched beat
+          triggerFeedback("win");
+          score++; // Increment score here
+          break;
       }
     }
     if (!matched) {
@@ -299,103 +298,55 @@ function getReadyScreen() {
 }
 
 function collectDrinks() {
+  player.update();
+  player.show();
 
-  player.update();  // Update player position
-  player.show();    // Show player character
-
-  // Loop through boundaries and check collisions with the player
+  // Update and show boundaries
   for (let boundary of boundaries) {
-    boundary.update();  // Update boundary position
-    boundary.show();    // Display the boundary
+    boundary.update();
+    boundary.show();
 
     if (boundary.collide(player)) {
-      mode = 6;  // Game Over if player collides with boundary
-      clearInterval(timerInterval);  // Stop timer
-      break;  // Stop checking other boundaries
+      mode = 6; // Game Over
+      clearInterval(timerInterval);
+      return;
     }
   }
 
-  // Only spawn new drinks if there are less than 3 drinks on the screen (increased spawn rate for Agnes)
+  // Spawn drinks if fewer than 3 are present
   if (drinks.length < 3 && frameCount % 45 === 0) {
     drinks.push(new Drink(random(100, width - 100), random(100, height - 100)));
+
   }
 
-  // Loop through the drinks and check if the player collects any
+  // Check for drink collection
   for (let i = drinks.length - 1; i >= 0; i--) {
     let drink = drinks[i];
-    drink.show();  // Display the drink
+    drink.show();
 
     if (player.collect(drink)) {
-      drinks.splice(i, 1);  // Remove the drink from the array when collected
+      drinks.splice(i, 1);
       drinksCollected++;
 
+      // Add points based on drink type
       if (drink.isSpecial) {
-        score += 3;  // Special (purple) drink gives 3 points for Agnes
+        score += 2; // Purple drink (special) adds 2 points
       } else {
-        score++;  // Regular drink gives 1 point
+        score += 1; // Regular drink adds 1 point
       }
 
+      // Check if 30 drinks collected
       if (drinksCollected >= 30) {
         checkChallengeOutcome();
+        return;
       }
     }
   }
 
-  // Display UI elements (score, time left, etc.)
+  // Display UI
   displayCollectDrinksUI();
 }
 
-function danceFloor() {
-  drawGameArea();
-
-  let beatInterval = agnesUnlocked ? 500 : 1000; // faster beats if Agnes is unlocked
-  fill(feedbackState === "win" ? "green" : "red");
-
-  if (millis() - lastBeatTime > beatInterval) {
-    beats.push(
-      new Beat(
-        random([width / 4, (width / 4) * 2, (width / 4) * 3]),
-        random(["UP", "DOWN", "LEFT", "RIGHT"])
-      )
-    );
-
-    if (agnesUnlocked && random() > 0.5) {
-      beats.push(new Beat(random([width / 4, (width / 4) * 2, (width / 4) * 3]), random(["UP", "DOWN", "LEFT", "RIGHT"])));
-    }
-
-    lastBeatTime = millis();
-  }
-
-  for (let i = beats.length - 1; i >= 0; i--) {
-    beats[i].update();
-    beats[i].show();
-    if (beats[i].y > height) {
-      beats.splice(i, 1);
-    }
-  }
-
-  if (feedbackAlpha > 0) {
-    fill(feedbackState === "win" ? "green" : "red");
-    textSize(50);
-    text(feedbackState === "win" ? "Good!" : "Miss!", width / 2, height / 2);
-    feedbackAlpha -= 5;
-  }
-
-  fill(255);
-  textSize(20);
-  text(`Score: ${score}`, width - 80, 30);
-}
-
-function triggerFeedback(state) {
-  feedbackState = state;
-  feedbackAlpha = 255;
-  if (state === "miss") {
-    score = max(0, score - (player.name === "Agnes" ? 2 : 1));
-  }
-  if (state === "win") {
-    score++;
-  }
-}
 
 function gameCompleted() {
   fill(255);
