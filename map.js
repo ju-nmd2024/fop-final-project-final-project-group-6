@@ -1,4 +1,3 @@
-
 createCanvas(1000, 650);
 background(255);
 
