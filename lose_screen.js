@@ -7,7 +7,7 @@ function draw(){
 function loseScreen(){
     noStroke();
 
-    fill(255);
+    fill(193, 18, 31);
     rect(50, 100, 20, 50);
     rect(90, 100, 20, 50);
     rect(60, 150, 40, 10);
@@ -37,5 +37,12 @@ function loseScreen(){
     rect(540, 100, 40, 20);
     rect(540, 180, 40, 20);
     rect(540, 140, 40, 20);
+
+    rect(610, 100, 20, 100);
+    rect(630, 100, 20, 10);
+    rect(650, 110, 20, 10);
+    rect(660, 120, 20, 60);
+    rect(650, 180, 20, 10);
+    rect(630, 190, 20, 10);
 
 }
