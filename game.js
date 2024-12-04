@@ -196,7 +196,7 @@ function keyPressed() {
       startDrinkChallenge();
     }
   } else if (mode === 3 && keyCode === 32) {
-    mode = 4; // Start Guitar Hero when space is pressed
+    mode = 4; 
   } else if (mode === 4) {
     let matched = false;
     for (let i = beats.length - 1; i >= 0; i--) {
