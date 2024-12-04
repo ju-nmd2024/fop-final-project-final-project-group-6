@@ -1,11 +1,11 @@
 createCanvas(1000, 600);
-noStroke();
 
 function draw(){
-    drinkSpecial();
+    drink();
 }
 
-function drinkSpecial(){
+function drink(){
+    noStroke();
     // color for the glass
     fill(151, 157, 172);
     rect(180, 120, 170, 100);
