@@ -91,6 +91,7 @@ class Drink {
     if (this.isSpecial) {
       fill(255, 0, 255); // Special drink color (purple)
     } else {
+
       fill(252, 163, 17); // Regular drink color (orange)
     }
     rect(this.x, this.y, this.size, this.size);
