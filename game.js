@@ -20,6 +20,215 @@ let maxDrinks = 15;
 let agnesDifficultyMultiplier = 1.5;
 let beatSpeedBase = 5;  // Base speed for beats
 
+function setup() {
+  createCanvas(1000, 650);
+  textAlign(CENTER, CENTER);
+  mode = 0;
+  boundaries.push(new Boundary(100, 150, 50, 30));
+  boundaries.push(new Boundary(200, 350, 50, 30));
+}
+
+function draw() {
+  background(0);
+
+  switch (mode) {
+    case 0:
+      startScreen();
+      break;
+    case 1:
+      menu();
+      break;
+    case 2:
+      collectDrinks();
+      break;
+    case 3:
+      getReadyScreen();
+      break;
+    case 4:
+      danceFloor();
+      break;
+    case 5:
+      gameCompleted();
+      break;
+    case 6:
+      gameOver();
+      break;
+  }
+
+  // only update and show the player in mode 2
+  if (mode === 2 && player) {
+    player.update();
+    player.show();
+  }
+}
+
+function startScreen() {
+  titleArt();
+
+  fill(255);
+  textSize(textSizeAnimation);
+  text("PRESS ENTER TO START", width / 2, 450);
+  textSizeAnimation = map(
+    sin(frameCount * sizeSpeedTextSize),
+    -1.0,
+    1.0,
+    minTextSize,
+    maxTextSize
+  );
+}
+
+function menu() {
+  textSize(18);
+  fill(255);
+  text("Press 2 for Paulina (Beginner)", width / 2, height / 2 - 20);
+  if (agnesUnlocked) {
+    text("Press 3 for Agnes (Expert)", width / 2, height / 2 + 20);
+  } else {
+    fill(150);
+    text("Agnes (Expert) - Locked", width / 2, height / 2 + 20);
+  }
+}
+
+function getReadyScreen() {
+  fill(255);
+  textSize(40);
+  text("Get Ready to Dance!", width / 2, height / 2);
+  textSize(20);
+  text("Press SPACE to start!", width / 2, height / 2 + 50);
+}
+
+function collectDrinks() {
+  drawMap();
+
+  player.update();  
+  player.show();    // Show player character
+
+  // Loop through boundaries and check collisions with the player
+  for (let boundary of boundaries) {
+    boundary.update();  // Update boundary position
+    boundary.show();    // Display the boundary
+
+    if (boundary.collide(player)) {
+      mode = 6;  // Game Over if player collides with boundary
+      clearInterval(timerInterval);  // Stop timer
+      break;  // Stop checking other boundaries
+    }
+  }
+
+  // Only spawn new drinks if there are less than 3 drinks on the screen (increased spawn rate for Agnes)
+  if (drinks.length < 3 && frameCount % 45 === 0) {
+    drinks.push(new Drink(random(100, width - 100), random(100, height - 100)));
+  }
+
+  // Loop through the drinks and check if the player collects any
+  for (let i = drinks.length - 1; i >= 0; i--) {
+    let drink = drinks[i];
+    drink.show();  // Display the drink
+
+    if (player.collect(drink)) {
+      drinks.splice(i, 1);  // Remove the drink from the array when collected
+      drinksCollected++;
+
+      if (drink.isSpecial) {
+        score += 3;  // Special (purple) drink gives 3 points for Agnes
+      } else {
+        score++;  // Regular drink gives 1 point
+      }
+
+      if (drinksCollected >= 30) {
+        checkChallengeOutcome();
+      }
+    }
+  }
+
+  // Display UI elements (score, time left, etc.)
+  displayCollectDrinksUI();
+}
+
+function startDrinkChallenge() {
+  drinksCollected = 0;
+
+  // Set the timer based on the player (Agnes vs. Paulina)
+  if (player.name === "Agnes") {
+    timer = 45;  // 45 seconds for Agnes to collect 30 drinks
+  } else {
+    timer = 60;  // 60 seconds for Paulina to collect 30 drinks
+  }
+
+  // Set interval for timer
+  timerInterval = setInterval(() => {
+    timer--;
+    if (timer <= 0) {
+      clearInterval(timerInterval);
+      checkChallengeOutcome();
+    }
+  }, 1000);
+}
+
+function checkChallengeOutcome() {
+  if (drinksCollected >= 30) {
+    clearInterval(timerInterval);  // Stop the timer
+    player = null;  // Remove the player when transitioning
+    mode = 3;  // Transition to the Get Ready Screen
+    getReadyStartTime = millis();  // Start the get ready timer
+  } else if (timer <= 0) {
+    clearInterval(timerInterval);  // Stop the timer
+    player = null;  // Remove the player when transitioning
+    mode = 6;  // Transition to Game Over screen
+  }
+}
+
+function keyPressed() {
+  if (keyCode === ENTER) {
+    if (mode === 0) {
+      mode = 1;
+    } else if (mode === 5 || mode === 6) {  // Game completed or Game Over
+      mode = 1;  // Return to menu
+    }
+  } else if (mode === 1) {
+    if (key === "2") {
+      player = new Player("Paulina", 10, height - 50, 4);
+      mode = 2;
+      startDrinkChallenge();
+    } else if (key === "3" && agnesUnlocked) {
+      player = new Player("Agnes", 10, height - 50, 7);
+      mode = 2;
+      startDrinkChallenge();
+    }
+  } else if (mode === 3 && keyCode === 32) {  // space key
+    mode = 4; 
+  } else if (mode === 4) {
+    let matched = false;
+    for (let i = beats.length - 1; i >= 0; i--) {
+      if (
+        beats[i].y > height - 100 &&
+        beats[i].y < height - 50 &&
+        ((beats[i].key === "UP" && keyCode === UP_ARROW) ||
+          (beats[i].key === "DOWN" && keyCode === DOWN_ARROW) ||
+          (beats[i].key === "LEFT" && keyCode === LEFT_ARROW) ||
+          (beats[i].key === "RIGHT" && keyCode === RIGHT_ARROW))
+      ) {
+        beats.splice(i, 1);
+        triggerFeedback("win");
+        matched = true;
+        score++;
+        break;
+      }
+    }
+    if (!matched) {
+      triggerFeedback("miss");
+    }
+  }
+}
+
+function displayCollectDrinksUI() {
+  fill(255);
+  textSize(20);
+  textAlign(RIGHT, TOP);
+  text(`Drinks Collected: ${drinksCollected}`, width - 20, 20);  // Fixed this line
+  text(`Time Left: ${timer}s`, width - 20, 50);  // Also wrapped this with backticks
+}
+
 class Boundary {
   constructor(x, y, w, h, speed) {
     this.x = x;
@@ -134,215 +343,6 @@ class Beat {
     textAlign(CENTER, CENTER);
     text(this.symbol, this.x, this.y);
   }
-}
-
-function setup() {
-  createCanvas(1000, 650);
-  textAlign(CENTER, CENTER);
-  mode = 0;
-  boundaries.push(new Boundary(100, 150, 50, 30));
-  boundaries.push(new Boundary(200, 350, 50, 30));
-}
-
-function draw() {
-  background(0);
-
-  switch (mode) {
-    case 0:
-      startScreen();
-      break;
-    case 1:
-      menu();
-      break;
-    case 2:
-      collectDrinks();
-      break;
-    case 3:
-      getReadyScreen();
-      break;
-    case 4:
-      danceFloor();
-      break;
-    case 5:
-      gameCompleted();
-      break;
-    case 6:
-      gameOver();
-      break;
-  }
-
-  // Only update and show the player in mode 2
-  if (mode === 2 && player) {
-    player.update();
-    player.show();
-  }
-}
-
-function displayCollectDrinksUI() {
-  fill(255);
-  textSize(20);
-  textAlign(RIGHT, TOP);
-  text(`Drinks Collected: ${drinksCollected}`, width - 20, 20);  // Fixed this line
-  text(`Time Left: ${timer}s`, width - 20, 50);  // Also wrapped this with backticks
-}
-
-function keyPressed() {
-  if (keyCode === ENTER) {
-    if (mode === 0) {
-      mode = 1;
-    } else if (mode === 5 || mode === 6) {  // Game completed or Game Over
-      mode = 1;  // Return to menu
-    }
-  } else if (mode === 1) {
-    if (key === "2") {
-      player = new Player("Paulina", 10, height - 50, 4);
-      mode = 2;
-      startDrinkChallenge();
-    } else if (key === "3" && agnesUnlocked) {
-      player = new Player("Agnes", 10, height - 50, 7);
-      mode = 2;
-      startDrinkChallenge();
-    }
-  } else if (mode === 3 && keyCode === 32) {  // space key
-    mode = 4; 
-  } else if (mode === 4) {
-    let matched = false;
-    for (let i = beats.length - 1; i >= 0; i--) {
-      if (
-        beats[i].y > height - 100 &&
-        beats[i].y < height - 50 &&
-        ((beats[i].key === "UP" && keyCode === UP_ARROW) ||
-          (beats[i].key === "DOWN" && keyCode === DOWN_ARROW) ||
-          (beats[i].key === "LEFT" && keyCode === LEFT_ARROW) ||
-          (beats[i].key === "RIGHT" && keyCode === RIGHT_ARROW))
-      ) {
-        beats.splice(i, 1);
-        triggerFeedback("win");
-        matched = true;
-        score++;
-        break;
-      }
-    }
-    if (!matched) {
-      triggerFeedback("miss");
-    }
-  }
-}
-
-function startScreen() {
-  titleArt();
-
-  fill(255);
-  textSize(textSizeAnimation);
-  text("PRESS ENTER TO START", width / 2, 450);
-  textSizeAnimation = map(
-    sin(frameCount * sizeSpeedTextSize),
-    -1.0,
-    1.0,
-    minTextSize,
-    maxTextSize
-  );
-}
-
-function menu() {
-  textSize(18);
-  fill(255);
-  text("Press 2 for Paulina (Beginner)", width / 2, height / 2 - 20);
-  if (agnesUnlocked) {
-    text("Press 3 for Agnes (Expert)", width / 2, height / 2 + 20);
-  } else {
-    fill(150);
-    text("Agnes (Expert) - Locked", width / 2, height / 2 + 20);
-  }
-}
-
-function startDrinkChallenge() {
-  drinksCollected = 0;
-
-  // Set the timer based on the player (Agnes vs. Paulina)
-  if (player.name === "Agnes") {
-    timer = 45;  // 45 seconds for Agnes to collect 30 drinks
-  } else {
-    timer = 60;  // 60 seconds for Paulina to collect 30 drinks
-  }
-
-  // Set interval for timer
-  timerInterval = setInterval(() => {
-    timer--;
-    if (timer <= 0) {
-      clearInterval(timerInterval);
-      checkChallengeOutcome();
-    }
-  }, 1000);
-}
-
-function checkChallengeOutcome() {
-  if (drinksCollected >= 30) {
-    clearInterval(timerInterval);  // Stop the timer
-    player = null;  // Remove the player when transitioning
-    mode = 3;  // Transition to the Get Ready Screen
-    getReadyStartTime = millis();  // Start the get ready timer
-  } else if (timer <= 0) {
-    clearInterval(timerInterval);  // Stop the timer
-    player = null;  // Remove the player when transitioning
-    mode = 6;  // Transition to Game Over screen
-  }
-}
-
-
-function getReadyScreen() {
-  fill(255);
-  textSize(40);
-  text("Get Ready to Dance!", width / 2, height / 2);
-  textSize(20);
-  text("Press SPACE to start!", width / 2, height / 2 + 50);
-}
-
-function collectDrinks() {
-
-  player.update();  // Update player position
-  player.show();    // Show player character
-
-  // Loop through boundaries and check collisions with the player
-  for (let boundary of boundaries) {
-    boundary.update();  // Update boundary position
-    boundary.show();    // Display the boundary
-
-    if (boundary.collide(player)) {
-      mode = 6;  // Game Over if player collides with boundary
-      clearInterval(timerInterval);  // Stop timer
-      break;  // Stop checking other boundaries
-    }
-  }
-
-  // Only spawn new drinks if there are less than 3 drinks on the screen (increased spawn rate for Agnes)
-  if (drinks.length < 3 && frameCount % 45 === 0) {
-    drinks.push(new Drink(random(100, width - 100), random(100, height - 100)));
-  }
-
-  // Loop through the drinks and check if the player collects any
-  for (let i = drinks.length - 1; i >= 0; i--) {
-    let drink = drinks[i];
-    drink.show();  // Display the drink
-
-    if (player.collect(drink)) {
-      drinks.splice(i, 1);  // Remove the drink from the array when collected
-      drinksCollected++;
-
-      if (drink.isSpecial) {
-        score += 3;  // Special (purple) drink gives 3 points for Agnes
-      } else {
-        score++;  // Regular drink gives 1 point
-      }
-
-      if (drinksCollected >= 30) {
-        checkChallengeOutcome();
-      }
-    }
-  }
-
-  // Display UI elements (score, time left, etc.)
-  displayCollectDrinksUI();
 }
 
 function danceFloor() {
