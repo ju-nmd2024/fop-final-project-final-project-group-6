@@ -94,7 +94,6 @@ function drawAgnesUnlocked(){
 
 function movingAgnesUnlocked(){
     clear();
-    drawAgnesUnlocked();
 
     yCharacter+=speedCharacter;
 
@@ -104,5 +103,5 @@ function movingAgnesUnlocked(){
 }
 
 function draw(){
-    movingAgnesUnlocked();
+    drawAgnesUnlocked();
 }
