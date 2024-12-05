@@ -87,8 +87,8 @@ class Player {
     if (keyIsDown(83)) this.y += this.speed; // S key
 
     // Constrain player to stay within canvas bounds
-    this.x = constrain(this.x, this.size / 2, width - this.size / 2);
-    this.y = constrain(this.y, this.size / 2, height - this.size / 2);
+    this.x = constrain(this.x, this.size / 5, width - this.size / 4);
+    this.y = constrain(this.y, this.size / 5, height + this.size / 4);
   }
 
   show() {
