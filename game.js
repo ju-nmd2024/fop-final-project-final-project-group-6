@@ -28,6 +28,11 @@ let xAgnes = 300;
 let yAgnes = 200; 
 let speedAgnes = 2.5; 
 
+function preload() {
+  manEnemy = loadImage("man_enemy.png");
+  drink1 = loadImage("Untitled.png");
+}
+
 class Boundary {
   constructor(x, y, w, h, speed = 0.02) {
     this.x = x;

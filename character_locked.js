@@ -7,7 +7,7 @@ let x = 100;
 let y = 100;
 let speed = -1.7;
 
-drawAgnesUnlocked();
+
 
 function drawAgnesUnlocked(){
     noStroke();
@@ -102,5 +102,5 @@ function movingAgnesLocked(){
 }
 
 function draw() {
-    movingAgnesLocked();
+    drawAgnesUnlocked();
 }
