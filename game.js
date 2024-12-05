@@ -29,7 +29,7 @@ let yAgnes = 200;
 let speedAgnes = 2.5; 
 
 class Boundary {
-  constructor(x, y, w, h, speed) {
+  constructor(x, y, w, h, speed = 0.02) {
     this.x = x;
     this.y = y;
     this.w = w;
@@ -70,7 +70,7 @@ class Player {
     this.x = x;
     this.y = y;
     this.speed = speed;
-    this.energy = 0;
+    //this.energy = 0;
   }
 
   update() {
@@ -81,16 +81,11 @@ class Player {
     this.x = constrain(this.x, 0, width - 50);
     this.y = constrain(this.y, 0, height - 50);
   
-  this.x = constrain(this.x, 0, width - 50);
-  this.y = constrain(this.y, 0, height - 50);
+ 
+    this.x = constrain(this.x, 0, width - 50);
+  
+    this.y = constrain(this.y, 0, height - 50);
 
-  if (this.y > height / 2) {
-    this.direction = -1; // Reverse direction
-  } else if (this.y < height / 3) {
-    this.direction = 1; // Forward direction
-  }
-
-  this.frameCounter++;
 }
 
   show() {
@@ -164,9 +159,7 @@ class Player {
     rect(200, 80, 10, 10);
     rect(210, 90, 10, 20);
     } else if (this.name === "Agnes") {
-      push();
     noStroke();
-    translate(xCharacter, yCharacter);
 
     //face color
     fill(214, 159, 126);
@@ -245,13 +238,15 @@ class Player {
 
     fill(214, 159, 126);
     rect(210, 160, 10, 0);
-    pop();
     }
+    pop();
   }
 
   collect(drink) {
     return dist(this.x, this.y, drink.x, drink.y) < 25;  
   }
+
+  //this.frameCounter++;
   
 }
 
@@ -333,11 +328,11 @@ function keyPressed() {
     }
   } else if (mode === 1) {
     if (key === "2") {
-      player = new Player("Paulina", 10, height - 50, 4);
+      player = new Player("Paulina", width/2, height - 50, 4);
       mode = 2;
       startDrinkChallenge();
     } else if (key === "3" && agnesUnlocked) {
-      player = new Player("Agnes", 10, height - 50, 7);
+      player = new Player("Agnes", width/2, height - 50, 7);
       mode = 2;
       startDrinkChallenge();
     }
@@ -369,6 +364,7 @@ function keyPressed() {
 }
 
 function startScreen() {
+  background(0);
   titleArt();
 
   fill(255);
@@ -384,6 +380,7 @@ function startScreen() {
 }
 
 function menu() {
+  background (50);
   textSize(18);
   fill(255);
   text("Press 2 for Paulina (Beginner)", width / 2, height / 2 - 20);
@@ -436,11 +433,219 @@ function getReadyScreen() {
   text("Press SPACE to start!", width / 2, height / 2 + 50);
 }
 
-function collectDrinks() {
-  clear();  
 
+function backgroundMap(){
+  push();
+  background (0);
+
+  noStroke();
+
+  //floor
+  fill(60);
+  rect(60, 60, 900, 550);
+  
+  fill(73, 80, 87);
+  rect(150, 100, 5, 10);
+  rect(250, 150, 5, 10);
+  rect(110, 230, 5, 10);
+  rect(310, 290, 5, 10);
+  rect(210, 500, 5, 10);
+  rect(610, 200, 5, 10);
+  rect(710, 130, 5, 10);
+  rect(540, 330, 5, 10);
+  rect(800, 430, 5, 10);
+  rect(890, 530, 5, 10);
+  
+  //bar disk
+  fill(100);
+  rect(50, 120, 50, 320);
+  
+  fill(25, 140);
+  rect(150, 120, 50, 320);
+  
+  //drinks on the bar
+  fill(35);
+  rect(80, 140, 10, 5);
+  rect(75, 145, 20, 10);
+  rect(80, 155, 10, 5);
+  
+  fill(25);
+  rect(75, 170, 15, 5);
+  rect(70, 175, 25, 10);
+  rect(75, 185, 15, 5);
+  
+  fill(71);
+  rect(80, 390, 10, 5);
+  rect(75, 395, 20, 10);
+  rect(80, 405, 10, 5);
+  
+  //stadning close to bar
+  fill(100, 110);
+  rect(290, 120, 200, 50);
+  fill(100);
+  rect(240, 60, 300, 70);
+  
+  //standing close to exit
+  fill(100);
+  rect(870, 60, 80, 250);
+  
+  fill(100, 110);
+  rect(830, 140, 40, 100);
+  
+  //pillar
+  fill(0);
+  rect(300, 335, 70, 70);
+  
+  //table
+  fill(100);
+  rect(250, 550, 420, 50);
+  
+  //chairs
+  rect(300, 500, 20, 10);
+  rect(290, 510, 40, 20);
+  rect(300, 530, 20, 10);
+  rect(320, 505, 5, 5);
+  rect(295, 505, 5, 5);
+  rect(295, 530, 5, 5);
+  rect(320, 530, 5, 5);
+  
+  rect(400, 500, 20, 10);
+  rect(390, 510, 40, 20);
+  rect(400, 530, 20, 10);
+  rect(420, 505, 5, 5);
+  rect(395, 505, 5, 5);
+  rect(395, 530, 5, 5);
+  rect(420, 530, 5, 5);
+  
+  
+  rect(500, 500, 20, 10);
+  rect(490, 510, 40, 20);
+  rect(500, 530, 20, 10);
+  rect(520, 505, 5, 5);
+  rect(495, 505, 5, 5);
+  rect(495, 530, 5, 5);
+  rect(520, 530, 5, 5);
+  
+  rect(600, 500, 20, 10);
+  rect(590, 510, 40, 20);
+  rect(600, 530, 20, 10);
+  rect(620, 505, 5, 5);
+  rect(595, 505, 5, 5);
+  rect(595, 530, 5, 5);
+  rect(620, 530, 5, 5);
+  
+  
+  //bar spegel
+  fill(0);
+  rect(60, 130, 10, 300);
+  
+  //doors
+  rect(600, 60, 10, 5);
+  rect(800, 60, 10, 5);
+  
+  rect(945, 310, 5, 5);
+  rect(945, 410, 5, 5);
+  
+  rect(945, 430, 5, 5);
+  rect(945, 500, 5, 5);
+  
+  //outline club
+  fill(0);
+  rect(50, 50, 10, 550);
+  rect(950, 50, 10, 550);
+  rect(50, 600, 910, 10);
+  rect(50, 50, 910, 10);
+  
+  fill(144, 103, 198, 50);
+  rect(0,0,1000, 650);
+  
+  fill(144, 103, 198);
+  rect(50, 30, 10, 90);
+  rect(45, 35, 5, 90);
+  rect(40, 45, 5, 80);
+  rect(35, 55, 5, 70);
+  rect(5, 65, 100, 10);
+  rect(0, 70, 100, 5);
+  rect(5, 75, 100, 5);
+  rect(10, 80, 90, 5);
+  rect(15, 85, 80, 5);
+  rect(20, 90, 70, 5);
+  rect(25, 95, 60, 10);
+  rect(20, 105, 70, 10);
+  rect(15, 115, 80, 10);
+  rect(10, 125, 20, 10);
+  rect(10, 135, 15, 5);
+  rect(25, 130, 10, 5);
+  rect(35, 125, 10, 5);
+  rect(45, 120, 20, 5);
+  rect(65, 125, 30, 5);
+  rect(75, 130, 20, 5);
+  rect(85, 135, 15, 5);
+  rect(95, 125, 5, 10);
+  rect(90, 115, 5, 10);
+  rect(85, 105, 5, 10);
+  rect(80, 95, 5, 10);
+  rect(85, 90, 5, 5);
+  rect(90, 85, 5, 5);
+  rect(95, 80, 5, 5);
+  rect(100, 75, 5, 5);
+  rect(105, 70, 5, 5);
+  rect(60, 35, 5, 30);
+  rect(65, 45, 5, 20);
+  rect(70, 55, 5, 10);
+  rect(75, 65, 30, 5);
+  rect(30, 125, 5, 5);
+  
+  translate(880, 460);
+  fill(144, 103, 198);
+  rect(50, 30, 10, 90);
+  rect(45, 35, 5, 90);
+  rect(40, 45, 5, 80);
+  rect(35, 55, 5, 70);
+  rect(5, 65, 100, 10);
+  rect(0, 70, 100, 5);
+  rect(5, 75, 100, 5);
+  rect(10, 80, 90, 5);
+  rect(15, 85, 80, 5);
+  rect(20, 90, 70, 5);
+  rect(25, 95, 60, 10);
+  rect(20, 105, 70, 10);
+  rect(15, 115, 80, 10);
+  rect(10, 125, 20, 10);
+  rect(10, 135, 15, 5);
+  rect(25, 130, 10, 5);
+  rect(35, 125, 10, 5);
+  rect(45, 120, 20, 5);
+  rect(65, 125, 30, 5);
+  rect(75, 130, 20, 5);
+  rect(85, 135, 15, 5);
+  rect(95, 125, 5, 10);
+  rect(90, 115, 5, 10);
+  rect(85, 105, 5, 10);
+  rect(80, 95, 5, 10);
+  rect(85, 90, 5, 5);
+  rect(90, 85, 5, 5);
+  rect(95, 80, 5, 5);
+  rect(100, 75, 5, 5);
+  rect(105, 70, 5, 5);
+  rect(60, 35, 5, 30);
+  rect(65, 45, 5, 20);
+  rect(70, 55, 5, 10);
+  rect(75, 65, 30, 5);
+  rect(30, 125, 5, 5);
+  pop();
+}
+
+
+function collectDrinks() {
+  background(30);
+  clear();  
+  backgroundMap();
+
+  if (player) { //making sure it spawns
   player.update();  
-  player.show();    
+  player.show();  
+  }  
 
   for (let boundary of boundaries) {
     boundary.update();  
@@ -452,7 +657,6 @@ function collectDrinks() {
       return;  
     }
   }
-
 
   if (drinks.length < 3 && frameCount % 45 === 0) {
     drinks.push(new Drink(random(100, width - 100), random(100, height - 100)));
@@ -468,7 +672,7 @@ function collectDrinks() {
       drinksCollected++;
 
       if (drink.isSpecial) {
-        score += 3; 
+        score += 2; 
       } else {
         score++;  
       }
@@ -1076,27 +1280,30 @@ function drawMap() {
 
 function draw() {
   clear();
+  background(30);
 
-  if (mode) {
-    if (mode === 0) {
-      startScreen();
-    } else if (mode === 1) {
-      menu();
-    } else if (mode === 2) {
-      collectDrinks();
-    } else if (mode === 3) {
-      getReadyScreen();
-    } else if (mode === 4) {
-      danceFloor();
-    } else if (mode === 5) {
-      gameCompleted();
-    } else if (mode === 6) {
-      gameOver();
-    }
+  if (mode === 0) {
+    startScreen();
+  } else if (mode === 1) {
+    menu();
+  } else if (mode === 2) {
+    collectDrinks();
+  } else if (mode === 3) {
+    getReadyScreen();
+  } else if (mode === 4) {
+    danceFloor();
+  } else if (mode === 5) {
+    gameCompleted();
+  } else if (mode === 6) {
+    gameOver();
+  } else {
+    fill(255, 0, 0);
+    textSize(40);
+    text("Error: Invalid Mode", width / 2, height / 2);
   }
 
-  if (mode === 2 && player) {
+ /* if (mode === 2 && player) {
     player.update();
     player.show();
-  }
+  }*/
 }
