@@ -19,10 +19,293 @@ let getReadyStartTime = 0;
 let maxDrinks = 15;
 let agnesDifficultyMultiplier = 1.5;
 let beatSpeedBase = 5;  // base speed for beats
+let paused = false;
+var mode;
+let xPaulina = 100; 
+let yPaulina = 100; 
+let speedPaulina = -1.7; 
+let xAgnes = 300; 
+let yAgnes = 200; 
+let speedAgnes = 2.5; 
 
-let xCharacter = 100;
-let yCharacter = 100;
-let speedCharacter = -1.7;
+class Boundary {
+  constructor(x, y, w, h, speed) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.speed = speed;  
+    this.initialX = x;  // initial position
+  }
+
+  update() {
+    // side to side movement using a sine wave (back and forth)
+    this.x = this.initialX + Math.sin(frameCount * this.speed) * 200; // Moves 200 pixels back and forth
+  }
+
+  show() {
+    fill(255, 0, 0, 150); 
+    noStroke();
+    rect(this.x, this.y, this.w, this.h);
+  }
+
+  collide(player) {
+    let playerLeft = player.x - 20;
+    let playerRight = player.x + 20;
+    let playerTop = player.y - 20;
+    let playerBottom = player.y + 20;
+
+    // collision detection boundary
+    return (
+      playerRight > this.x &&
+      playerLeft < this.x + this.w &&
+      playerBottom > this.y &&
+      playerTop < this.y + this.h
+    );
+  }
+}
+class Player {
+  constructor(name, x, y, speed) {
+    this.name = name;
+    this.x = x;
+    this.y = y;
+    this.speed = speed;
+    this.energy = 0;
+  }
+
+  update() {
+    if (keyIsDown(65)) this.x -= this.speed; // A key
+    if (keyIsDown(68)) this.x += this.speed; // D key
+    if (keyIsDown(87)) this.y -= this.speed; // W key
+    if (keyIsDown(83)) this.y += this.speed; // S key
+    this.x = constrain(this.x, 0, width - 50);
+    this.y = constrain(this.y, 0, height - 50);
+  
+  this.x = constrain(this.x, 0, width - 50);
+  this.y = constrain(this.y, 0, height - 50);
+
+  if (this.y > height / 2) {
+    this.direction = -1; // Reverse direction
+  } else if (this.y < height / 3) {
+    this.direction = 1; // Forward direction
+  }
+
+  this.frameCounter++;
+}
+
+  show() {
+    push();
+    translate(this.x, this.y);
+    if (this.name === "Paulina") {
+    noStroke();
+    //face color
+    fill(255, 209, 173);
+    rect(90, 120, 130, 80);
+
+    //eyes
+    fill(87, 64, 46);
+    rect(180, 150, 15, 5);
+    rect(175, 155, 5, 15);
+    rect(195, 155, 5, 15);
+    rect(180, 170, 15, 5);
+    rect(190, 155, 5, 15);
+    rect(200, 150, 5, 5);
+    rect(120, 150, 5, 5);
+
+    rect(130, 150, 15, 5);
+    rect(125, 155, 5, 15);
+    rect(145, 155, 5, 15);
+    rect(130, 170, 15, 5);
+    rect(140, 155, 5, 15);
+
+    fill(255, 220);
+    rect(180, 155, 10, 15);
+    rect(130, 155, 10, 15);
+
+    //mouth
+    fill(87, 64, 46);
+    rect(155, 175, 5, 5);
+    rect(160, 180, 10, 5);
+    rect(170, 175, 5, 5);
+
+    //hair
+    fill(211, 189, 160);
+    rect(110, 80, 90, 50);
+    rect(100, 90, 10, 60);
+    rect(90, 110, 10, 100);
+    rect(200, 90, 10, 50);
+    rect(210, 110, 10, 100);
+
+    fill(168, 146, 121);
+    rect(100, 190, 10, 20);
+    rect(200, 190, 10, 20);
+
+    //skin color
+    fill(251, 196, 171);
+    rect(150, 120, 20, 10);
+    rect(110, 130, 40, 10);
+    rect(170, 130, 30, 10);
+    rect(100, 150, 10, 10);
+
+    rect(130, 180, 10, 10);
+    rect(190, 180, 10, 10);
+
+    //face outline
+    fill(255);
+    rect(110, 70, 90, 10);
+    rect(100, 80, 10, 10);
+    rect(90, 90, 10, 20);
+    rect(100, 80, 10, 10);
+    rect(80, 110, 10, 100);
+    rect(90, 210, 20, 10);
+    rect(110, 200, 90, 10);
+    rect(200, 210, 20, 10);
+    rect(220, 110, 10, 100);
+    rect(200, 80, 10, 10);
+    rect(210, 90, 10, 20);
+    } else if (this.name === "Agnes") {
+      push();
+    noStroke();
+    translate(xCharacter, yCharacter);
+
+    //face color
+    fill(214, 159, 126);
+    rect(90, 120, 130, 80);
+
+    //eyes
+    fill(87, 64, 46);
+    rect(180, 150, 15, 5);
+    rect(175, 155, 5, 15);
+    rect(195, 155, 5, 15);
+    rect(180, 170, 15, 5);
+    rect(190, 155, 5, 15);
+    rect(200, 150, 5, 5);
+    rect(120, 150, 5, 5);
+
+    rect(130, 150, 15, 5);
+    rect(125, 155, 5, 15);
+    rect(145, 155, 5, 15);
+    rect(130, 170, 15, 5);
+    rect(140, 155, 5, 15);
+
+    fill(255, 220);
+    rect(180, 155, 10, 15);
+    rect(130, 155, 10, 15);
+
+    //mouth
+    fill(87, 64, 46);
+    rect(155, 175, 5, 5);
+    rect(160, 180, 10, 5);
+    rect(170, 175, 5, 5);
+
+    //hair
+    fill(119, 73, 54);
+    rect(110, 50, 90, 80);
+    rect(100, 60, 10, 90);
+    rect(90, 70, 10, 110);
+    rect(200, 60, 10, 70);
+    rect(80, 70, 10, 110);
+    rect(70, 90, 10, 80);
+    rect(230, 90, 10, 70);
+    rect(210, 70, 20, 110);
+
+
+    //skin color
+    fill(195, 142, 112);
+    rect(150, 120, 20, 10);
+    rect(110, 130, 40, 10);
+    rect(170, 130, 30, 10);
+    rect(100, 150, 10, 10);
+
+    rect(130, 180, 10, 10);
+    rect(190, 180, 10, 10);
+
+    //face outline
+    fill(255);
+    rect(110, 40, 90, 10);
+    rect(100, 50, 10, 10);
+    rect(80, 60, 20, 10);
+    rect(70, 70, 10, 20);
+    rect(60, 90, 10, 80);
+    rect(70, 170, 10, 10);
+    rect(80, 180, 10, 10);
+    rect(90, 190, 20, 10);
+    rect(110, 200, 90, 10);
+    rect(200, 190, 20, 10);
+    rect(220, 180, 10, 10);
+    rect(240, 90, 10, 70);
+    rect(230, 160, 10, 20);
+    rect(230, 70, 10, 20);
+    rect(210, 60, 20, 10);
+    rect(200, 50, 10, 10);
+
+
+    fill(195, 142, 112);
+    rect(200, 130, 10, 10);
+
+    fill(214, 159, 126);
+    rect(210, 160, 10, 0);
+    pop();
+    }
+  }
+
+  collect(drink) {
+    return dist(this.x, this.y, drink.x, drink.y) < 25;  
+  }
+  
+}
+
+class Drink {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.size = 20; // size default
+    this.isSpecial = random() < 0.1;  
+  }
+
+  show() {
+    if (this.isSpecial) {
+      fill(255, 0, 255); 
+    } else {
+      fill(252, 163, 17); // reg drinks
+    }
+    rect(this.x, this.y, this.size, this.size); 
+  }
+
+  collect(player) {
+    return dist(player.x, player.y, this.x, this.y) < 25;  // if player collect enough
+  }
+}
+
+class Beat {
+  constructor(x, key, isAgnes) {
+    this.x = x;
+    this.y = 0;
+    this.key = key;
+    this.arrowSymbols = {
+      UP: "↑",
+      DOWN: "↓",
+      LEFT: "←",
+      RIGHT: "→",
+    };
+    this.symbol = this.arrowSymbols[key];
+    //this.speed = beatSpeedBase;
+    this.speed = isAgnes? beatSpeedBase * agnesDifficultyMultiplier : beatSpeedBase;
+  }
+
+  update() {
+    this.y += this.speed;  
+  }
+
+  show() {
+    fill(252, 163, 17);
+    rect(this.x - 25, this.y - 25, 50, 50);
+    fill(255);
+    textSize(20);
+    textAlign(CENTER, CENTER);
+    text(this.symbol, this.x, this.y);
+  }
+}
 
 function setup() {
   createCanvas(1000, 650);
@@ -32,157 +315,21 @@ function setup() {
   boundaries.push(new Boundary(200, 350, 50, 30));
 }
 
-function draw() {
-  background(0);
 
-  switch (mode) {
-    case 0:
-      startScreen();
-      break;
-    case 1:
-      menu();
-      break;
-    case 2:
-      collectDrinks();
-      break;
-    case 3:
-      getReadyScreen();
-      break;
-    case 4:
-      danceFloor();
-      break;
-    case 5:
-      gameCompleted();
-      break;
-    case 6:
-      gameOver();
-      break;
-  }
-
-  // only update and show the player in mode 2
-  if (mode === 2 && player) {
-    player.update();
-    player.show();
-  }
-}
-
-function startScreen() {
-
+function displayCollectDrinks() {
   fill(255);
-  textSize(textSizeAnimation);
-  text("PRESS ENTER TO START", width / 2, 450);
-  textSizeAnimation = map(sin(frameCount * sizeSpeedTextSize),-1.0,1.0,minTextSize,maxTextSize);
-  
-  titleArt();
-}
-
-function menu() {
-  textSize(18);
-  fill(255);
-  text("Press 2 for Paulina (Beginner)", width / 2, height / 2 - 20);
-  if (agnesUnlocked) {
-    text("Press 3 for Agnes (Expert)", width / 2, height / 2 + 20);
-  } else {
-    fill(150);
-    text("Agnes (Expert) - Locked", width / 2, height / 2 + 20);
-  }
-}
-
-function getReadyScreen() {
-  fill(255);
-  textSize(40);
-  text("Get Ready to Dance!", width / 2, height / 2);
   textSize(20);
-  text("Press SPACE to start!", width / 2, height / 2 + 50);
-}
-
-function collectDrinks() {
-  drawMap();
-
-  player.update();  
-  player.show();  
-
-  // loop through boundaries and check collisions
-  for (let boundary of boundaries) {
-    boundary.update();  
-    boundary.show();   
-
-    if (boundary.collide(player)) {
-      mode = 6;  // game Over if player collides with boundary
-      clearInterval(timerInterval);  // stop timer
-      break;  // stop checking other boundaries
-    }
-  }
-
-  //cap on spawn if less than 3 drinks on the screen (increased spawn rate, agnes)
-  if (drinks.length < 3 && frameCount % 45 === 0) {
-    drinks.push(new Drink(random(100, width - 100), random(100, height - 100)));
-  }
-
-  // loop drinks, check if the player collects any
-  for (let i = drinks.length - 1; i >= 0; i--) {
-    let drink = drinks[i];
-    drink.show(); 
-
-    if (player.collect(drink)) {
-      drinks.splice(i, 1);  // remove drink from array when collected
-      drinksCollected++;
-
-      if (drink.isSpecial) {
-        score += 3;  // special drink 3 p for Agnes
-      } else {
-        score++;  // regular drink 1 p
-      }
-
-      if (drinksCollected >= 30) {
-        checkChallengeOutcome();
-      }
-    }
-  }
-
-  // score, time left
-  displayCollectDrinks();
-}
-
-function startDrinkChallenge() {
-  drinksCollected = 0;
-
-  // timer based on player
-  if (player.name === "Agnes") {
-    timer = 45; 
-  } else {
-    timer = 60;  //for pau pau
-  }
-
-  // interval for timer
-  timerInterval = setInterval(() => {
-    timer--;
-    if (timer <= 0) {
-      clearInterval(timerInterval);
-      checkChallengeOutcome();
-    }
-  }, 1000);
-}
-
-function checkChallengeOutcome() {
-  if (drinksCollected >= 30) {
-    clearInterval(timerInterval);  // stop timer
-    player = null;  
-    mode = 3;  // get ready screen
-    getReadyStartTime = millis();  // start get ready timer
-  } else if (timer <= 0) {
-    clearInterval(timerInterval);  // stop timer
-    player = null;  // remove player when changing state
-    mode = 6;  //game over screen
-  }
+  textAlign(RIGHT, TOP);
+  text(`Drinks Collected: ${drinksCollected}`, width - 20, 20);  
+  text(`Time Left: ${timer}s`, width - 20, 50);  
 }
 
 function keyPressed() {
   if (keyCode === ENTER) {
     if (mode === 0) {
       mode = 1;
-    } else if (mode === 5 || mode === 6) {  // game results win/lose
-      mode = 1;  // back to menu
+    } else if (mode === 5 || mode === 6) {  // end game, win lose
+      mode = 1;  // menu return
     }
   } else if (mode === 1) {
     if (key === "2") {
@@ -195,7 +342,8 @@ function keyPressed() {
       startDrinkChallenge();
     }
   } else if (mode === 3 && keyCode === 32) {  // space key
-    mode = 4; 
+    mode = 4;  
+    score = 0;
   } else if (mode === 4) {
     let matched = false;
     for (let i = beats.length - 1; i >= 0; i--) {
@@ -220,150 +368,164 @@ function keyPressed() {
   }
 }
 
-function displayCollectDrinks() {
+function startScreen() {
+  titleArt();
+
   fill(255);
-  textSize(20);
-  textAlign(RIGHT, TOP);
-  text(`Drinks Collected: ${drinksCollected}`, width - 20, 20);  
-  text(`Time Left: ${timer}s`, width - 20, 50);  
+  textSize(textSizeAnimation);
+  text("PRESS ENTER TO START", width / 2, 450);
+  textSizeAnimation = map(
+    sin(frameCount * sizeSpeedTextSize),
+    -1.0,
+    1.0,
+    minTextSize,
+    maxTextSize
+  );
 }
 
-class Boundary {
-  constructor(x, y, w, h, speed) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.speed = speed; 
-    this.initialX = x;  // store/keep first pos
-  }
-
-  update() {
-    // horizontal movement using a sine wave (back and forth)
-    this.x = this.initialX + Math.sin(frameCount * this.speed) * 200; 
-  }
-
-  show() {
-    fill(255, 0, 0, 150);  
-    noStroke();
-    rect(this.x, this.y, this.w, this.h);
-  }
-
-  collide(player) {
-    let playerLeft = player.x - 20;
-    let playerRight = player.x + 20;
-    let playerTop = player.y - 20;
-    let playerBottom = player.y + 20;
-
-    // collision detection (boundary)
-    return (
-      playerRight > this.x &&
-      playerLeft < this.x + this.w &&
-      playerBottom > this.y &&
-      playerTop < this.y + this.h
-    );
+function menu() {
+  textSize(18);
+  fill(255);
+  text("Press 2 for Paulina (Beginner)", width / 2, height / 2 - 20);
+  if (agnesUnlocked) {
+    text("Press 3 for Agnes (Expert)", width / 2, height / 2 + 20);
+  } else {
+    fill(150);
+    text("Agnes (Expert) - Locked", width / 2, height / 2 + 20);
   }
 }
-class Player {
-  constructor(name, x, y, speed) {
-    this.name = name;
-    this.x = x;
-    this.y = y;
-    this.speed = speed;
-    this.energy = 0;
+
+function startDrinkChallenge() {
+  drinksCollected = 0;
+
+  if (player.name === "Agnes") {
+    timer = 45;  
+  } else {
+    timer = 60;  
   }
 
-  update() {
-    if (keyIsDown(65)) this.x -= this.speed; // A key
-    if (keyIsDown(68)) this.x += this.speed; // D key
-    if (keyIsDown(87)) this.y -= this.speed; // W key
-    if (keyIsDown(83)) this.y += this.speed; // S key
-    this.x = constrain(this.x + 50, 0, width - 50);
-    this.y = constrain(this.y + 50, 0, height - 50);
-  }
-
-  show() {
-    fill(200, 0, 0);
-    ellipse(this.x, this.y, 40, 40);
-  }
-
-  collect(drink) {
-    return dist(this.x, this.y, drink.x, drink.y) < 25;  // if within 25 pixels
-  }
-  
-}
-
-class Drink {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.size = 20; // reg drink size
-    this.isSpecial = random() < 0.1;  // 10% chance for a special drink
-  }
-
-  show() {
-    if (this.isSpecial) {
-      fill(255, 0, 255); // purple for special drinks
-    } else {
-      fill(252, 163, 17); // orange for regular drinks
+  //interval set for timer
+  timerInterval = setInterval(() => {
+    timer--;
+    if (timer <= 0) {
+      clearInterval(timerInterval);
+      checkChallengeOutcome();
     }
-    
-    rect(this.x, this.y, this.size, this.size); 
-  }
+  }, 1000);
+}
 
-  collect(player) {
-    return dist(player.x, player.y, this.x, this.y) < 25;  // Check if the player is close enough to collect it
+function checkChallengeOutcome() {
+  if (drinksCollected >= 30) {
+    clearInterval(timerInterval);  
+    player = null;  // removes player
+    mode = 3;  
+    getReadyStartTime = millis(); 
+  } else if (timer <= 0) {
+    clearInterval(timerInterval); 
+    player = null;  
+    mode = 6; 
   }
 }
 
-class Beat {
-  constructor(x, key) {
-    this.x = x;
-    this.y = 0;
-    this.key = key;
-    this.arrowSymbols = {
-      UP: "↑",
-      DOWN: "↓",
-      LEFT: "←",
-      RIGHT: "→",
-    };
-    this.symbol = this.arrowSymbols[key];
-    this.speed = beatSpeedBase;
+
+function getReadyScreen() {
+  fill(255);
+  textSize(40);
+  text("Get Ready to Dance!", width / 2, height / 2);
+  textSize(20);
+  text("Press SPACE to start!", width / 2, height / 2 + 50);
+}
+
+function collectDrinks() {
+  clear();  
+
+  player.update();  
+  player.show();    
+
+  for (let boundary of boundaries) {
+    boundary.update();  
+    boundary.show();   
+
+    if (boundary.collide(player)) {
+      mode = 6;  
+      clearInterval(timerInterval); 
+      return;  
+    }
   }
 
-  update() {
-    this.y += this.speed;  // apply speed to beat
+
+  if (drinks.length < 3 && frameCount % 45 === 0) {
+    drinks.push(new Drink(random(100, width - 100), random(100, height - 100)));
   }
 
-  show() {
-    fill(252, 163, 17);
-    rect(this.x - 25, this.y - 25, 50, 50);
-    fill(255);
-    textSize(20);
-    textAlign(CENTER, CENTER);
-    text(this.symbol, this.x, this.y);
+
+  for (let i = drinks.length - 1; i >= 0; i--) {  //array interaction w index
+    let drink = drinks[i];
+    drink.show();  
+
+    if (player.collect(drink)) {
+      drinks.splice(i, 1);  
+      drinksCollected++;
+
+      if (drink.isSpecial) {
+        score += 3; 
+      } else {
+        score++;  
+      }
+
+      if (drinksCollected >= 30) {
+        checkChallengeOutcome();
+      }
+    }
   }
+  displayCollectDrinks();
 }
 
 function danceFloor() {
   drawGameArea();
 
-  let beatInterval = agnesUnlocked ? 500 : 1000; // faster beats if Agnes is unlocked
-  fill(feedbackState === "win" ? "green" : "red");
-
+  let beatInterval = player.name === "Agnes" ? 500 : 1000;
   if (millis() - lastBeatTime > beatInterval) {
+    // new beat generation
+    beats.push(
+      new Beat(
+        random([width / 4, (width / 4) * 2, (width / 4) * 3]),
+        random(["UP", "DOWN", "LEFT", "RIGHT"]),
+        player.name === "Agnes"
+      )
+    );
+
+    // difficulty logic, agnes
+    if (player.name === "Agnes" && random() > 0.6) {
+      beats.push(
+        new Beat(
+          random([width / 4, (width / 4) * 2, (width / 4) * 3]),
+          random(["UP", "DOWN", "LEFT", "RIGHT"]),
+          true
+        )
+      );
+    }
+
+    lastBeatTime = millis();
+  }
+
+
+  /*if (millis() - lastBeatTime > beatInterval) {
     beats.push(
       new Beat(
         random([width / 4, (width / 4) * 2, (width / 4) * 3]),
         random(["UP", "DOWN", "LEFT", "RIGHT"])
       )
-    );
+    );*/
 
-    if (agnesUnlocked && random() > 0.5) {
+    if (millis() - lastBeatTime > beatInterval) {
       beats.push(new Beat(random([width / 4, (width / 4) * 2, (width / 4) * 3]), random(["UP", "DOWN", "LEFT", "RIGHT"])));
-    }
-
-    lastBeatTime = millis();
+  
+      if (player.name === "Agnes" && random() > 0.6) {
+          beats.push(new Beat(random([width / 4, (width / 4) * 2, (width / 4) * 3]), random(["UP", "DOWN", "LEFT", "RIGHT"])));
+      }
+  
+      lastBeatTime = millis();
   }
 
   for (let i = beats.length - 1; i >= 0; i--) {
@@ -381,10 +543,16 @@ function danceFloor() {
     feedbackAlpha -= 5;
   }
 
+  if (score >= 25) {
+    mode = 5;  
+  } else if (score < 0) {
+    mode = 6;  
+  }
+
   fill(255);
   textSize(20);
-  text(`Score: ${score}`, width - 80, 30);
-}
+  text(`Score: ${score}`, width - 80, 30); }
+
 
 function triggerFeedback(state) {
   feedbackState = state;
@@ -402,6 +570,7 @@ function gameCompleted() {
   textSize(30);
   text("You Win!", width / 2, height / 2 - 20);
   if (!agnesUnlocked) {
+    agnesUnlocked = true;
     text("Agnes is now unlocked!", width / 2, height / 2 + 20);
   }
   textSize(20);
@@ -428,7 +597,6 @@ function gameOver() {
 }
 
 function titleArt(){
-  translate(-20, 70);
   noStroke();
   //
   
@@ -638,7 +806,7 @@ function titleArt(){
   rect(820, 225, 5, 5);
   }
 
-function drawDrink(){
+function drink(){
   translate(this.x, this.y, this.size, this.size);
   noStroke();
   // color for the glass
@@ -706,15 +874,13 @@ function drawDrink(){
   rect(260, 220, 30, 70);
 }
 
-function drawMap(){
-  background (0);
-
+function drawMap() {
   noStroke();
 
   //floor
   fill(60);
   rect(60, 60, 900, 550);
-  
+
   fill(73, 80, 87);
   rect(150, 100, 5, 10);
   rect(250, 150, 5, 10);
@@ -726,51 +892,51 @@ function drawMap(){
   rect(540, 330, 5, 10);
   rect(800, 430, 5, 10);
   rect(890, 530, 5, 10);
-  
+
   //bar disk
   fill(100);
   rect(50, 120, 50, 320);
-  
+
   fill(25, 140);
   rect(150, 120, 50, 320);
-  
+
   //drinks on the bar
   fill(35);
   rect(80, 140, 10, 5);
   rect(75, 145, 20, 10);
   rect(80, 155, 10, 5);
-  
+
   fill(25);
   rect(75, 170, 15, 5);
   rect(70, 175, 25, 10);
   rect(75, 185, 15, 5);
-  
+
   fill(71);
   rect(80, 390, 10, 5);
   rect(75, 395, 20, 10);
   rect(80, 405, 10, 5);
-  
+
   //stadning close to bar
   fill(100, 110);
   rect(290, 120, 200, 50);
   fill(100);
   rect(240, 60, 300, 70);
-  
+
   //standing close to exit
   fill(100);
   rect(870, 60, 80, 250);
-  
+
   fill(100, 110);
   rect(830, 140, 40, 100);
-  
+
   //pillar
   fill(0);
   rect(300, 335, 70, 70);
-  
+
   //table
   fill(100);
   rect(250, 550, 420, 50);
-  
+
   //chairs
   rect(300, 500, 20, 10);
   rect(290, 510, 40, 20);
@@ -779,7 +945,7 @@ function drawMap(){
   rect(295, 505, 5, 5);
   rect(295, 530, 5, 5);
   rect(320, 530, 5, 5);
-  
+
   rect(400, 500, 20, 10);
   rect(390, 510, 40, 20);
   rect(400, 530, 20, 10);
@@ -787,8 +953,8 @@ function drawMap(){
   rect(395, 505, 5, 5);
   rect(395, 530, 5, 5);
   rect(420, 530, 5, 5);
-  
-  
+
+
   rect(500, 500, 20, 10);
   rect(490, 510, 40, 20);
   rect(500, 530, 20, 10);
@@ -796,7 +962,7 @@ function drawMap(){
   rect(495, 505, 5, 5);
   rect(495, 530, 5, 5);
   rect(520, 530, 5, 5);
-  
+
   rect(600, 500, 20, 10);
   rect(590, 510, 40, 20);
   rect(600, 530, 20, 10);
@@ -804,32 +970,32 @@ function drawMap(){
   rect(595, 505, 5, 5);
   rect(595, 530, 5, 5);
   rect(620, 530, 5, 5);
-  
-  
+
+
   //bar spegel
   fill(0);
   rect(60, 130, 10, 300);
-  
+
   //doors
   rect(600, 60, 10, 5);
   rect(800, 60, 10, 5);
-  
+
   rect(945, 310, 5, 5);
   rect(945, 410, 5, 5);
-  
+
   rect(945, 430, 5, 5);
   rect(945, 500, 5, 5);
-  
+
   //outline club
   fill(0);
   rect(50, 50, 10, 550);
   rect(950, 50, 10, 550);
   rect(50, 600, 910, 10);
   rect(50, 50, 910, 10);
-  
+
   fill(144, 103, 198, 50);
   rect(0,0,1000, 650);
-  
+
   fill(144, 103, 198);
   rect(50, 30, 10, 90);
   rect(45, 35, 5, 90);
@@ -866,7 +1032,7 @@ function drawMap(){
   rect(70, 55, 5, 10);
   rect(75, 65, 30, 5);
   rect(30, 125, 5, 5);
-  
+
   translate(880, 460);
   fill(144, 103, 198);
   rect(50, 30, 10, 90);
@@ -904,86 +1070,33 @@ function drawMap(){
   rect(70, 55, 5, 10);
   rect(75, 65, 30, 5);
   rect(30, 125, 5, 5);
+    
 }
 
-function drawPaulina() {
-  noStroke();
-  translate(xCharacter,yCharacter);
 
-  //face color
-  fill(255, 209, 173);
-  rect(90, 120, 130, 80);
-
-  //eyes
-  fill(87, 64, 46);
-  rect(180, 150, 15, 5);
-  rect(175, 155, 5, 15);
-  rect(195, 155, 5, 15);
-  rect(180, 170, 15, 5);
-  rect(190, 155, 5, 15);
-  rect(200, 150, 5, 5);
-  rect(120, 150, 5, 5);
-
-  rect(130, 150, 15, 5);
-  rect(125, 155, 5, 15);
-  rect(145, 155, 5, 15);
-  rect(130, 170, 15, 5);
-  rect(140, 155, 5, 15);
-
-  fill(255, 220);
-  rect(180, 155, 10, 15);
-  rect(130, 155, 10, 15);
-
-  //mouth
-  fill(87, 64, 46);
-  rect(155, 175, 5, 5);
-  rect(160, 180, 10, 5);
-  rect(170, 175, 5, 5);
-
-  //hair
-  fill(211, 189, 160);
-  rect(110, 80, 90, 50);
-  rect(100, 90, 10, 60);
-  rect(90, 110, 10, 100);
-  rect(200, 90, 10, 50);
-  rect(210, 110, 10, 100);
-
-  fill(168, 146, 121);
-  rect(100, 190, 10, 20);
-  rect(200, 190, 10, 20);
-
-  //skin color
-  fill(251, 196, 171);
-  rect(150, 120, 20, 10);
-  rect(110, 130, 40, 10);
-  rect(170, 130, 30, 10);
-  rect(100, 150, 10, 10);
-
-  rect(130, 180, 10, 10);
-  rect(190, 180, 10, 10);
-
-  //face outline
-  fill(255);
-  rect(110, 70, 90, 10);
-  rect(100, 80, 10, 10);
-  rect(90, 90, 10, 20);
-  rect(100, 80, 10, 10);
-  rect(80, 110, 10, 100);
-  rect(90, 210, 20, 10);
-  rect(110, 200, 90, 10);
-  rect(200, 210, 20, 10);
-  rect(220, 110, 10, 100);
-  rect(200, 80, 10, 10);
-  rect(210, 90, 10, 20);
-}
-
-function movingPaulina(){
+function draw() {
   clear();
-  drawPaulina();
 
-  yCharacter+=speedCharacter;
+  if (mode) {
+    if (mode === 0) {
+      startScreen();
+    } else if (mode === 1) {
+      menu();
+    } else if (mode === 2) {
+      collectDrinks();
+    } else if (mode === 3) {
+      getReadyScreen();
+    } else if (mode === 4) {
+      danceFloor();
+    } else if (mode === 5) {
+      gameCompleted();
+    } else if (mode === 6) {
+      gameOver();
+    }
+  }
 
-if (yCharacter > 130 || yCharacter < 100) {
-speedCharacter = speedCharacter * -1;
-}
+  if (mode === 2 && player) {
+    player.update();
+    player.show();
+  }
 }
