@@ -40,7 +40,7 @@ class Boundary {
 
   update() {
     // side to side movement using a sine wave (back and forth)
-    this.x = this.initialX + Math.sin(frameCount * this.speed) * 200; // Moves 200 pixels back and forth
+    this.x = this.initialX + Math.sin(frameCount * this.speed) * 60; // Moves 200 pixels back and forth
   }
 
   show() {
@@ -50,10 +50,10 @@ class Boundary {
   }
 
   collide(player) {
-    let playerLeft = player.x - 20;
-    let playerRight = player.x + 20;
-    let playerTop = player.y - 20;
-    let playerBottom = player.y + 20;
+    let playerLeft = player.x - 30;
+    let playerRight = player.x + 30;
+    let playerTop = player.y - 30;
+    let playerBottom = player.y + 30;
 
     // collision detection boundary
     return (
@@ -67,31 +67,30 @@ class Boundary {
 class Player {
   constructor(name, x, y, speed) {
     this.name = name;
-    this.x = x;
-    this.y = y;
+    this.x = x; // Center x
+    this.y = y; // Center y
     this.speed = speed;
-    //this.energy = 0;
+    this.size = 40; // Approximate size for collision
+    this.frameCounter = 0;
   }
 
   update() {
+    this.frameCounter++;
     if (keyIsDown(65)) this.x -= this.speed; // A key
     if (keyIsDown(68)) this.x += this.speed; // D key
     if (keyIsDown(87)) this.y -= this.speed; // W key
     if (keyIsDown(83)) this.y += this.speed; // S key
-    this.x = constrain(this.x, 0, width - 50);
-    this.y = constrain(this.y, 0, height - 50);
-  
- 
-    this.x = constrain(this.x, 0, width - 50);
-  
-    this.y = constrain(this.y, 0, height - 50);
 
-}
+    // Constrain player to stay within canvas bounds
+    this.x = constrain(this.x, this.size / 2, width - this.size / 2);
+    this.y = constrain(this.y, this.size / 2, height - this.size / 2);
+  }
 
   show() {
     push();
     translate(this.x, this.y);
-    scale(0.3);
+    scale(0.4);
+
     if (this.name === "Paulina") {
     noStroke();
     //face color
@@ -161,7 +160,6 @@ class Player {
     rect(210, 90, 10, 20);
     } else if (this.name === "Agnes") {
     noStroke();
-
     //face color
     fill(214, 159, 126);
     rect(90, 120, 130, 80);
@@ -246,8 +244,6 @@ class Player {
   collect(drink) {
     return dist(this.x, this.y, drink.x, drink.y) < 15;  
   }
-
-  //this.frameCounter++;
   
 }
 
@@ -255,21 +251,16 @@ class Drink {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.size = 20; // size default
-    this.isSpecial = random() < 0.1;  
+    this.size = 20; // Smaller size
   }
 
   show() {
-    if (this.isSpecial) {
-      fill(255, 0, 255); 
-    } else {
-      fill(252, 163, 17); // reg drinks
-    }
-    rect(this.x, this.y, this.size, this.size); 
+    fill(250, 160, 17); // Orange drink color
+    rect(this.x, this.y, this.size, this.size);
   }
 
   collect(player) {
-    return dist(player.x, player.y, this.x, this.y) < 25;  // if player collect enough
+    return dist(player.x, player.y, this.x, this.y) < 15;
   }
 }
 
@@ -640,49 +631,45 @@ function backgroundMap(){
 
 function collectDrinks() {
   background(30);
-  clear();  
+  clear();
   backgroundMap();
 
-  if (player) { //making sure it spawns
-  player.update();  
-  player.show();  
-  }  
+  // Update and display the player
+  if (player) {
+    player.update();
+    player.show();
+  }
 
+  // Render and update boundaries
   for (let boundary of boundaries) {
-    boundary.update();  
-    boundary.show();   
+    boundary.update();
+    boundary.show();
 
     if (boundary.collide(player)) {
-      mode = 6;  
-      clearInterval(timerInterval); 
-      return;  
+      mode = 6; // Game over if colliding with a boundary
+      clearInterval(timerInterval);
+      return;
     }
   }
 
-  if (drinks.length < 3 && frameCount % 45 === 0) {
+  // Spawn up to 3 drinks
+  if (drinks.length < 3 && frameCount % 60 === 0) {
     drinks.push(new Drink(random(100, width - 100), random(100, height - 100)));
   }
 
-
-  for (let i = drinks.length - 1; i >= 0; i--) {  //array interaction w index
+  // Check and collect drinks
+  for (let i = drinks.length - 1; i >= 0; i--) {
     let drink = drinks[i];
-    drink.show();  
-
-    if (player.collect(drink)) {
-      drinks.splice(i, 1);  
+    drink.show();
+    if (drink.collect(player)) {
+      console.log("Collected drink at", drink.x, drink.y); // Debug log
+      drinks.splice(i, 1); // Remove the collected drink
       drinksCollected++;
-
-      if (drink.isSpecial) {
-        score += 2; 
-      } else {
-        score++;  
-      }
-
-      if (drinksCollected >= 30) {
-        checkChallengeOutcome();
-      }
+      score++;
     }
   }
+
+  // Display score and timer
   displayCollectDrinks();
 }
 
@@ -730,7 +717,7 @@ function danceFloor() {
     feedbackAlpha -= 5;
   }
 
-  if (score >= 25) {
+  if (score >= 1) {
     mode = 5;  
   } else if (score < 0) {
     mode = 6;  
