@@ -91,6 +91,7 @@ class Player {
   show() {
     push();
     translate(this.x, this.y);
+    scale(0.3);
     if (this.name === "Paulina") {
     noStroke();
     //face color
@@ -243,7 +244,7 @@ class Player {
   }
 
   collect(drink) {
-    return dist(this.x, this.y, drink.x, drink.y) < 25;  
+    return dist(this.x, this.y, drink.x, drink.y) < 15;  
   }
 
   //this.frameCounter++;
@@ -285,7 +286,7 @@ class Beat {
     };
     this.symbol = this.arrowSymbols[key];
     //this.speed = beatSpeedBase;
-    this.speed = isAgnes? beatSpeedBase * agnesDifficultyMultiplier : beatSpeedBase;
+    this.speed = isAgnes ? beatSpeedBase * agnesDifficultyMultiplier : beatSpeedBase;
   }
 
   update() {
@@ -711,32 +712,14 @@ function danceFloor() {
     }
 
     lastBeatTime = millis();
-  }
-
-
-  /*if (millis() - lastBeatTime > beatInterval) {
-    beats.push(
-      new Beat(
-        random([width / 4, (width / 4) * 2, (width / 4) * 3]),
-        random(["UP", "DOWN", "LEFT", "RIGHT"])
-      )
-    );*/
-
-    if (millis() - lastBeatTime > beatInterval) {
-      beats.push(new Beat(random([width / 4, (width / 4) * 2, (width / 4) * 3]), random(["UP", "DOWN", "LEFT", "RIGHT"])));
   
-      if (player.name === "Agnes" && random() > 0.6) {
-          beats.push(new Beat(random([width / 4, (width / 4) * 2, (width / 4) * 3]), random(["UP", "DOWN", "LEFT", "RIGHT"])));
-      }
-  
-      lastBeatTime = millis();
   }
-
   for (let i = beats.length - 1; i >= 0; i--) {
     beats[i].update();
     beats[i].show();
     if (beats[i].y > height) {
       beats.splice(i, 1);
+      triggerFeedback("miss");
     }
   }
 
@@ -755,8 +738,8 @@ function danceFloor() {
 
   fill(255);
   textSize(20);
-  text(`Score: ${score}`, width - 80, 30); }
-
+  text(`Score: ${score}`, width - 80, 30); 
+}
 
 function triggerFeedback(state) {
   feedbackState = state;
