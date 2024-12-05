@@ -10,7 +10,7 @@ let speed = -1.7;
 function drawAgnesUnlocked(){
     push();
     noStroke();
-    translate(x, y);
+    translate(xCharacter, yCharacter);
 
     //face color
     fill(214, 159, 126);
@@ -96,10 +96,10 @@ function movingAgnesUnlocked(){
     clear();
     drawAgnesUnlocked();
 
-    y+=speed;
+    yCharacter+=speedCharacter;
 
-  if (y > 130 || y < 100) {
-  speed = speed * -1;
+  if (yCharacter > 130 || yCharacter < 100) {
+  speedCharacter = speedCharacter * -1;
   }
 }
 
