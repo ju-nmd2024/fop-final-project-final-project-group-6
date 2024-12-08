@@ -18,259 +18,145 @@ let timerInterval;
 let getReadyStartTime = 0;
 let maxDrinks = 15;
 let agnesDifficultyMultiplier = 1.5;
-let beatSpeedBase = 5;  // base speed for beats
-let paused = false;
-var mode;
-let xPaulina = 100; 
-let yPaulina = 100; 
-let speedPaulina = -1.7; 
-let xAgnes = 300; 
-let yAgnes = 200; 
-let speedAgnes = 2.5; 
-
-function preload() {
-  manEnemy = loadImage("man_enemy.png");
-  drink1 = loadImage("Untitled.png");
-}
+let beatSpeedBase = 5;  // Base speed for beats
+let drinkScore = 0; // Score for drink collection game
+let beatScore = 0;  // Score for dance/beat game
+let specialDrinkImage, normalDrinkImage;
+let lastBeatColumn = -1; // To track the last column used
+let enemyImage;
+let paulinaImage;
+let paulinaWidthFactor = 6; // Horizontal scaling factor
+let paulinaHeightFactor = 5;
+let agnesImage;
 
 class Boundary {
-  constructor(x, y, w, h, speed = 0.02) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.speed = speed;  
-    this.initialX = x;  // initial position
+  constructor(x, y, w, h, speed, radius, centerX, centerY) {
+    this.x = x;          // Starting x-position
+    this.y = y;          // Starting y-position
+    this.w = w;          // Width of boundary
+    this.h = h;          // Height of boundary
+    this.speed = speed;  // Speed of movement
+    this.angle = 0;      // Starting angle (in radians)
+    this.radius = radius; // Radius of the circular path
+    this.centerX = centerX; // Center x of the circle
+    this.centerY = centerY; // Center y of the circle
   }
 
   update() {
-    // side to side movement using a sine wave (back and forth)
-    this.x = this.initialX + Math.sin(frameCount * this.speed) * 60; // Moves 200 pixels back and forth
+    // Update the angle over time to move in a circular path
+    this.angle += this.speed;  // Increase angle to move around the circle
+
+    // Calculate new x and y based on the angle
+    this.x = this.centerX + this.radius * cos(this.angle); // X position along the circle
+    this.y = this.centerY + this.radius * sin(this.angle); // Y position along the circle
   }
 
   show() {
-    push();
-    image(drink1, 10, 10, 100, 100);
-      pop();
+    if (enemyImage) {
+      imageMode(CENTER);
+      image(enemyImage, this.x, this.y, this.w, this.h);
+    } else {
+      // Fallback to a red rectangle if the image is not loaded
+      fill(255, 0, 0, 150);
+      rect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
+    }
   }
 
   collide(player) {
-    let playerLeft = player.x - 30;
-    let playerRight = player.x + 30;
-    let playerTop = player.y - 30;
-    let playerBottom = player.y + 30;
+    let playerLeft = player.x - 20;
+    let playerRight = player.x + 20;
+    let playerTop = player.y - 20;
+    let playerBottom = player.y + 20;
 
-    // collision detection boundary
     return (
-      playerRight > this.x &&
-      playerLeft < this.x + this.w &&
-      playerBottom > this.y &&
-      playerTop < this.y + this.h
+      playerRight > this.x - this.w / 2 &&
+      playerLeft < this.x + this.w / 2 &&
+      playerBottom > this.y - this.h / 2 &&
+      playerTop < this.y + this.h / 2
     );
   }
 }
+
+
 class Player {
   constructor(name, x, y, speed) {
     this.name = name;
-    this.x = x; // Center x
-    this.y = y; // Center y
+    this.x = x;
+    this.y = y;
     this.speed = speed;
-    this.size = 40; // Approximate size for collision
-    this.frameCounter = 0;
+    this.energy = 0;
   }
 
   update() {
-    this.frameCounter++;
     if (keyIsDown(65)) this.x -= this.speed; // A key
     if (keyIsDown(68)) this.x += this.speed; // D key
     if (keyIsDown(87)) this.y -= this.speed; // W key
     if (keyIsDown(83)) this.y += this.speed; // S key
-
-    // Constrain player to stay within canvas bounds
-    this.x = constrain(this.x, this.size / 5, width - this.size / 4);
-    this.y = constrain(this.y, this.size / 5, height + this.size / 4);
+    this.x = constrain(this.x, 0, width - 50);
+    this.y = constrain(this.y, 0, height - 50);
   }
 
   show() {
-    push();
-    translate(this.x, this.y);
-    scale(0.4);
+    imageMode(CENTER);
 
-    if (this.name === "Paulina") {
-    noStroke();
-    //face color
-    fill(255, 209, 173);
-    rect(90, 120, 130, 80);
-
-    //eyes
-    fill(87, 64, 46);
-    rect(180, 150, 15, 5);
-    rect(175, 155, 5, 15);
-    rect(195, 155, 5, 15);
-    rect(180, 170, 15, 5);
-    rect(190, 155, 5, 15);
-    rect(200, 150, 5, 5);
-    rect(120, 150, 5, 5);
-
-    rect(130, 150, 15, 5);
-    rect(125, 155, 5, 15);
-    rect(145, 155, 5, 15);
-    rect(130, 170, 15, 5);
-    rect(140, 155, 5, 15);
-
-    fill(255, 220);
-    rect(180, 155, 10, 15);
-    rect(130, 155, 10, 15);
-
-    //mouth
-    fill(87, 64, 46);
-    rect(155, 175, 5, 5);
-    rect(160, 180, 10, 5);
-    rect(170, 175, 5, 5);
-
-    //hair
-    fill(211, 189, 160);
-    rect(110, 80, 90, 50);
-    rect(100, 90, 10, 60);
-    rect(90, 110, 10, 100);
-    rect(200, 90, 10, 50);
-    rect(210, 110, 10, 100);
-
-    fill(168, 146, 121);
-    rect(100, 190, 10, 20);
-    rect(200, 190, 10, 20);
-
-    //skin color
-    fill(251, 196, 171);
-    rect(150, 120, 20, 10);
-    rect(110, 130, 40, 10);
-    rect(170, 130, 30, 10);
-    rect(100, 150, 10, 10);
-
-    rect(130, 180, 10, 10);
-    rect(190, 180, 10, 10);
-
-    //face outline
-    fill(255);
-    rect(110, 70, 90, 10);
-    rect(100, 80, 10, 10);
-    rect(90, 90, 10, 20);
-    rect(100, 80, 10, 10);
-    rect(80, 110, 10, 100);
-    rect(90, 210, 20, 10);
-    rect(110, 200, 90, 10);
-    rect(200, 210, 20, 10);
-    rect(220, 110, 10, 100);
-    rect(200, 80, 10, 10);
-    rect(210, 90, 10, 20);
-    } else if (this.name === "Agnes") {
-    noStroke();
-    //face color
-    fill(214, 159, 126);
-    rect(90, 120, 130, 80);
-
-    //eyes
-    fill(87, 64, 46);
-    rect(180, 150, 15, 5);
-    rect(175, 155, 5, 15);
-    rect(195, 155, 5, 15);
-    rect(180, 170, 15, 5);
-    rect(190, 155, 5, 15);
-    rect(200, 150, 5, 5);
-    rect(120, 150, 5, 5);
-
-    rect(130, 150, 15, 5);
-    rect(125, 155, 5, 15);
-    rect(145, 155, 5, 15);
-    rect(130, 170, 15, 5);
-    rect(140, 155, 5, 15);
-
-    fill(255, 220);
-    rect(180, 155, 10, 15);
-    rect(130, 155, 10, 15);
-
-    //mouth
-    fill(87, 64, 46);
-    rect(155, 175, 5, 5);
-    rect(160, 180, 10, 5);
-    rect(170, 175, 5, 5);
-
-    //hair
-    fill(119, 73, 54);
-    rect(110, 50, 90, 80);
-    rect(100, 60, 10, 90);
-    rect(90, 70, 10, 110);
-    rect(200, 60, 10, 70);
-    rect(80, 70, 10, 110);
-    rect(70, 90, 10, 80);
-    rect(230, 90, 10, 70);
-    rect(210, 70, 20, 110);
-
-
-    //skin color
-    fill(195, 142, 112);
-    rect(150, 120, 20, 10);
-    rect(110, 130, 40, 10);
-    rect(170, 130, 30, 10);
-    rect(100, 150, 10, 10);
-
-    rect(130, 180, 10, 10);
-    rect(190, 180, 10, 10);
-
-    //face outline
-    fill(255);
-    rect(110, 40, 90, 10);
-    rect(100, 50, 10, 10);
-    rect(80, 60, 20, 10);
-    rect(70, 70, 10, 20);
-    rect(60, 90, 10, 80);
-    rect(70, 170, 10, 10);
-    rect(80, 180, 10, 10);
-    rect(90, 190, 20, 10);
-    rect(110, 200, 90, 10);
-    rect(200, 190, 20, 10);
-    rect(220, 180, 10, 10);
-    rect(240, 90, 10, 70);
-    rect(230, 160, 10, 20);
-    rect(230, 70, 10, 20);
-    rect(210, 60, 20, 10);
-    rect(200, 50, 10, 10);
-
-
-    fill(195, 142, 112);
-    rect(200, 130, 10, 10);
-
-    fill(214, 159, 126);
-    rect(210, 160, 10, 0);
+    if (this.name === "Paulina" && paulinaImage) {
+      let scaledWidth = 50 * paulinaWidthFactor;
+      let scaledHeight = 50 * paulinaHeightFactor;
+      image(paulinaImage, this.x, this.y, scaledWidth, scaledHeight); // Show Paulina's image
+    } else if (this.name === "Agnes" && agnesImage) {
+      let scaledWidth = 50 * paulinaWidthFactor;  // You can adjust the scaling for Agnes here
+      let scaledHeight = 50 * paulinaHeightFactor;
+      image(agnesImage, this.x, this.y, scaledWidth, scaledHeight); // Show Agnes' image
     }
-    pop();
   }
 
   collect(drink) {
-    return dist(this.x, this.y, drink.x, drink.y) < 15;  
+    return dist(this.x, this.y, drink.x, drink.y) < 25;
   }
-  
 }
+
 
 class Drink {
   constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.size = 20; // Smaller size
+    this.x = x; // Center position x
+    this.y = y; // Center position y
+    this.size = 80; // Height of the drink
+    this.widthFactor = 1.5; // Width scaling
+    this.isSpecial = random() < 0.2; // Special drink chance
   }
 
   show() {
-    fill(250, 160, 17); // Orange drink color
-    rect(this.x, this.y, this.size, this.size);
+    let drinkWidth = this.size * this.widthFactor;
+    let drinkHeight = this.size;
+
+    imageMode(CENTER); // Ensure images are drawn from the center
+    if (this.isSpecial) {
+      image(specialDrinkImage, this.x, this.y, drinkWidth, drinkHeight);
+    } else {
+      image(normalDrinkImage, this.x, this.y, drinkWidth, drinkHeight);
+    }
   }
 
   collect(player) {
-    return dist(player.x, player.y, this.x, this.y) < 15;
+    let drinkWidth = this.size * this.widthFactor;
+    let drinkHeight = this.size;
+
+    // Adjust collision based on player dimensions and drink dimensions
+    let halfDrinkWidth = drinkWidth / 2;
+    let halfDrinkHeight = drinkHeight / 2;
+
+    return (
+      player.x + 20 > this.x - halfDrinkWidth && // Player's right edge > drink's left edge
+      player.x - 20 < this.x + halfDrinkWidth && // Player's left edge < drink's right edge
+      player.y + 20 > this.y - halfDrinkHeight && // Player's bottom edge > drink's top edge
+      player.y - 20 < this.y + halfDrinkHeight    // Player's top edge < drink's bottom edge
+    );
   }
 }
 
+
 class Beat {
-  constructor(x, key, isAgnes) {
+  constructor(x, key) {
     this.x = x;
     this.y = 0;
     this.key = key;
@@ -281,12 +167,11 @@ class Beat {
       RIGHT: "→",
     };
     this.symbol = this.arrowSymbols[key];
-    //this.speed = beatSpeedBase;
-    this.speed = isAgnes ? beatSpeedBase * agnesDifficultyMultiplier : beatSpeedBase;
+    this.speed = beatSpeedBase;
   }
 
   update() {
-    this.y += this.speed;  
+    this.y += this.speed;  // Apply speed to beat
   }
 
   show() {
@@ -303,41 +188,93 @@ function setup() {
   createCanvas(1000, 650);
   textAlign(CENTER, CENTER);
   mode = 0;
-  boundaries.push(new Boundary(100, 150, 50, 30));
-  boundaries.push(new Boundary(200, 350, 50, 30));
+  boundaries.push(new Boundary(200, 300, 80, 100, 0.05, 150, width / 2 + 100, height / 2));  // Enemy 1, moved to the right
+  boundaries.push(new Boundary(500, 200, 80, 100, 0.03, 100, width / 4 + 100, height / 4));  // Enemy 2, moved to the right
 }
 
+function draw() {
+  background(0);
 
-function displayCollectDrinks() {
+  if (mode === 2) 
+    for (let boundary of boundaries) {
+    boundary.update();
+    boundary.show();
+  }
+
+  if (mode === 2 && player) {
+    player.update();
+    player.show();
+  }
+
+  switch (mode) {
+    case 0:
+      startScreen();
+      break;
+    case 1:
+      menu();
+      break;
+    case 2:
+      collectDrinks();
+      break;
+    case 3:
+      getReadyScreen();
+      break;
+    case 4:
+      danceFloor();
+      break;
+    case 5:
+      gameCompleted();
+      break;
+    case 6:
+      gameOver();
+      break;
+    case 9:  
+    gameOverMan();
+    break;
+  }
+
+}
+
+function displayCollectDrinksUI() {
   fill(255);
   textSize(20);
   textAlign(RIGHT, TOP);
-  text(`Drinks Collected: ${drinksCollected}`, width - 20, 20);  
-  text(`Time Left: ${timer}s`, width - 20, 50);  
+  text(`Drinks Collected: ${drinksCollected}`, width - 20, 20);  // Fixed this line
+  text(`Time Left: ${timer}s`, width - 20, 50);  // Also wrapped this with backticks
 }
 
 function keyPressed() {
   if (keyCode === ENTER) {
     if (mode === 0) {
-      mode = 1;
-    } else if (mode === 5 || mode === 6) {  // end game, win lose
-      mode = 1;  // menu return
+      mode = 1; // Start the game
+    } else if (mode === 5 || mode === 6 || mode === 9) {
+      mode = 1; // Return to menu after any Game Over screen
     }
-  } else if (mode === 1) {
-    if (key === "2") {
-      player = new Player("Paulina", width/2, height - 50, 4);
-      mode = 2;
+  }
+
+  // Menu mode
+  else if (mode === 1) {
+    if (key === "2") { // Paulina
+      player = new Player("Paulina", width - 50, height / 2, 4); // Start at far right
+      mode = 2; // Start drink collection for Paulina
       startDrinkChallenge();
-    } else if (key === "3" && agnesUnlocked) {
-      player = new Player("Agnes", width/2, height - 50, 7);
-      mode = 2;
+    } else if (key === "3" && agnesUnlocked) { // Agnes
+      player = new Player("Agnes", width - 50, height / 2, 7); // Start at far right
+      mode = 2; // Start drink collection for Agnes
       startDrinkChallenge();
     }
-  } else if (mode === 3 && keyCode === 32) {  // space key
-    mode = 4;  
-    score = 0;
-  } else if (mode === 4) {
-    let matched = false;
+  }
+  
+  
+
+  // Get Ready Screen
+  else if (mode === 3 && keyCode === 32) { // Space key
+    mode = 4; // Transition to dance floor stage
+  }
+
+  // Dance Floor mode
+  else if (mode === 4) {
+    let match = false;
     for (let i = beats.length - 1; i >= 0; i--) {
       if (
         beats[i].y > height - 100 &&
@@ -347,21 +284,26 @@ function keyPressed() {
           (beats[i].key === "LEFT" && keyCode === LEFT_ARROW) ||
           (beats[i].key === "RIGHT" && keyCode === RIGHT_ARROW))
       ) {
-        beats.splice(i, 1);
-        triggerFeedback("win");
-        matched = true;
-        score++;
+        beats.splice(i, 1); // Remove matched beat
+        triggerFeedback("win"); // Correct beat hit
+        match = true;
         break;
       }
     }
-    if (!matched) {
+
+    if (!match) {
       triggerFeedback("miss");
     }
   }
+
+  // Game Over (Man Screen)
+  else if (mode === 9 && keyCode === ENTER) {
+    mode = 1; // Return to menu
+  }
 }
 
+
 function startScreen() {
-  background(0);
   titleArt();
 
   fill(255);
@@ -377,7 +319,8 @@ function startScreen() {
 }
 
 function menu() {
-  background (50);
+  drinkScore = 0;
+  beatScore = 0;
   textSize(18);
   fill(255);
   text("Press 2 for Paulina (Beginner)", width / 2, height / 2 - 20);
@@ -389,16 +332,17 @@ function menu() {
   }
 }
 
+
 function startDrinkChallenge() {
   drinksCollected = 0;
+  score = 0; // Reset score to 0
 
   if (player.name === "Agnes") {
-    timer = 45;  
+    timer = 45;  // 45 seconds for Agnes
   } else {
-    timer = 60;  
+    timer = 60;  // 60 seconds for Paulina
   }
 
-  //interval set for timer
   timerInterval = setInterval(() => {
     timer--;
     if (timer <= 0) {
@@ -408,17 +352,17 @@ function startDrinkChallenge() {
   }, 1000);
 }
 
+
 function checkChallengeOutcome() {
-  if (drinksCollected >= 30) {
+  if (drinksCollected >= 3) {
     clearInterval(timerInterval);  
-    player = null;  // removes player
     mode = 3;  
-    getReadyStartTime = millis(); 
+    getReadyStartTime = millis();  // Start the get ready timer
   } else if (timer <= 0) {
-    clearInterval(timerInterval); 
-    player = null;  
-    mode = 6; 
+    clearInterval(timerInterval);   
+    mode = 6;  
   }
+  player = null; //removes the player
 }
 
 
@@ -429,7 +373,6 @@ function getReadyScreen() {
   textSize(20);
   text("Press SPACE to start!", width / 2, height / 2 + 50);
 }
-
 
 function backgroundMap(){
   push();
@@ -635,77 +578,75 @@ function backgroundMap(){
 
 
 function collectDrinks() {
-  background(30);
-  clear();
-  backgroundMap();
+  background(0); // Clear the screen and set background color
+  backgroundMap(); // Draw the background map
 
-  // Update and display the player
+  // Update and show the player
   if (player) {
     player.update();
     player.show();
   }
 
-  // Render and update boundaries
+  // Update and display all boundaries (enemies)
   for (let boundary of boundaries) {
-    boundary.update();
-    boundary.show();
+    boundary.update();  // Update enemy's position
+    boundary.show();    // Display enemy
 
-    if (boundary.collide(player)) {
-      mode = 6; // Game over if colliding with a boundary
-      clearInterval(timerInterval);
-      return;
+    // If player collides with an enemy, trigger Game Over
+    if (player && boundary.collide(player)) {
+      mode = 9; // Switch to Game Over mode (man collision)
+      clearInterval(timerInterval); // Stop the timer
+      return; // Stop further execution (no more game actions)
     }
   }
 
-  // Spawn up to 3 drinks
-  if (drinks.length < 3 && frameCount % 60 === 0) {
-    drinks.push(new Drink(random(100, width - 100), random(100, height - 100)));
+  // Spawn drinks at a steady interval, limiting the number of drinks to 3
+  if (drinks.length < 3 && frameCount % 45 === 0) {
+    drinks.push(new Drink(random(100, width - 100), random(100, height - 100))); // Random positions for drinks
   }
 
-  // Check and collect drinks
+  // Loop through drinks and check if they are collected by the player
   for (let i = drinks.length - 1; i >= 0; i--) {
     let drink = drinks[i];
-    drink.show();
-    if (drink.collect(player)) {
-      console.log("Collected drink at", drink.x, drink.y); // Debug log
+    drink.show(); // Show the drink
+
+    // Check if the player collects the drink
+    if (player && drink.collect(player)) {
       drinks.splice(i, 1); // Remove the collected drink
-      drinksCollected++;
-      score++;
+      drinksCollected++; // Increment the drinks collected counter
+
+      // Update score based on drink type
+      if (drink.isSpecial) {
+        drinkScore += 2; // Special drinks give extra points
+      } else {
+        drinkScore++; // Regular drinks give 1 point
+      }
+
+      // If player collects enough drinks, check challenge outcome
+      if (drinksCollected >= 5) {
+        checkChallengeOutcome(); // Transition to the next phase
+      }
     }
   }
 
-  // Display score and timer
-  displayCollectDrinks();
+  // Display game UI (drinks collected, time left)
+  fill(255);
+  textSize(20);
+  textAlign(RIGHT, TOP);
+  text(`Drinks Collected: ${drinksCollected}`, width - 20, 20); // Display number of drinks collected
+  text(`Time Left: ${timer}s`, width - 20, 50); // Display time left in the challenge
 }
 
 function danceFloor() {
   drawGameArea();
 
-  let beatInterval = player.name === "Agnes" ? 500 : 1000;
+  let beatInterval = agnesUnlocked ? 500 : 1000;
+
   if (millis() - lastBeatTime > beatInterval) {
-    // new beat generation
-    beats.push(
-      new Beat(
-        random([width / 4, (width / 4) * 2, (width / 4) * 3]),
-        random(["UP", "DOWN", "LEFT", "RIGHT"]),
-        player.name === "Agnes"
-      )
-    );
-
-    // difficulty logic, agnes
-    if (player.name === "Agnes" && random() > 0.6) {
-      beats.push(
-        new Beat(
-          random([width / 4, (width / 4) * 2, (width / 4) * 3]),
-          random(["UP", "DOWN", "LEFT", "RIGHT"]),
-          true
-        )
-      );
-    }
-
+    beats.push(new Beat(random([width / 4, (width / 4) * 2, (width / 4) * 3]), random(["UP", "DOWN", "LEFT", "RIGHT"])));
     lastBeatTime = millis();
-  
   }
+
   for (let i = beats.length - 1; i >= 0; i--) {
     beats[i].update();
     beats[i].show();
@@ -722,39 +663,55 @@ function danceFloor() {
     feedbackAlpha -= 5;
   }
 
-  if (score >= 1) {
-    mode = 5;  
-  } else if (score < 0) {
-    mode = 6;  
+  // Check for score threshold to complete the game
+  if (beatScore >= 10) {  // You can adjust this threshold (10 is just an example)
+    mode = 5;  // Transition to game completed screen
   }
 
+  // Display beat game score
   fill(255);
   textSize(20);
-  text(`Score: ${score}`, width - 80, 30); 
+  text(`Score: ${beatScore}`, width - 80, 30);
+}
+
+
+function resetDanceFloor() {
+  beats = [];       // Clear all existing beats
+  lastBeatTime = 0; // Reset beat timing
+  beatScore = 0;    // Reset beat score to 0
+  feedbackAlpha = 0; // Reset feedback animation
+  feedbackState = null; // Clear previous feedback
 }
 
 function triggerFeedback(state) {
   feedbackState = state;
   feedbackAlpha = 255;
+
   if (state === "miss") {
-    score = max(0, score - (player.name === "Agnes" ? 2 : 1));
-  }
-  if (state === "win") {
-    score++;
+    beatScore = max(0, beatScore - 1); // Decrease 1 point for a miss
+    if (beatScore <= 0) { 
+      mode = 6; // Game Over
+      clearInterval(timerInterval);
+    }
+  } else if (state === "win") {
+    beatScore++;  // Gain 1 point only
   }
 }
 
 function gameCompleted() {
   fill(255);
   textSize(30);
-  text("You Win!", width / 2, height / 2 - 20);
+  text("You Win!", width / 2, height / 2 - 20); // Display "You Win!" message
+  
   if (!agnesUnlocked) {
-    agnesUnlocked = true;
-    text("Agnes is now unlocked!", width / 2, height / 2 + 20);
+    agnesUnlocked = true;  // Unlock Agnes if not already unlocked
+    text("Agnes is now unlocked!", width / 2, height / 2 + 20);  // Show Agnes unlocked message
   }
+  
   textSize(20);
-  text("Press ENTER to return to the menu.", width / 2, height / 2 + 60);
+  text("Press ENTER to return to the menu.", width / 2, height / 2 + 60);  // Prompt to return to the menu
 }
+
 
 function drawGameArea() {
   fill(50);
@@ -768,12 +725,51 @@ function drawGameArea() {
 }
 
 function gameOver() {
-  fill(255);
-  textSize(40);
-  text("GAME OVER", width / 2, height / 2 - 20);
+  // Add a background effect to the text for better visibility
+  fill(0, 150); // Semi-transparent background behind the text
+  rect(width / 2 - 300, height / 2 - 60, 600, 120); // Rectangular background for the text
+  
+  // Set up the "GAME OVER" text with monospace font
+  textSize(50);
+  textAlign(CENTER, CENTER);
+  fill(255); // White color for "GAME OVER"
+  textFont('monospace'); // Apply the monospace font
+  text("GAME OVER", width / 2, height / 2 - 40); // Display "GAME OVER" message
+
+  // Set up the "Your dance skills were not good..." message with monospace font
+  textSize(25);
+  fill(255, 0, 0); // Red color for the message, highlighting it as a warning
+  textFont('monospace'); // Apply the monospace font
+  text("Your dance skills were not good... go home", width / 2, height / 2 + 20); // Display message
+
+  // Add a small text prompt at the bottom with monospace font
   textSize(20);
-  text("Press ENTER to return to the menu", width / 2, height / 2 + 20);
+  fill(200); // Lighter gray color for the prompt
+  textFont('monospace'); // Apply the monospace font
+  text("Press ENTER to return to the menu.", width / 2, height / 2 + 60);  // Prompt to return to the menu
 }
+
+function gameOverMan() {
+  // Draw the background image stretched to full screen
+  if (enemyImage) {
+    imageMode(CORNER);
+    image(enemyImage, 0, 0, width, height); // Stretch the boundary image
+  } else {
+    background(50); // Fallback background color if image fails to load
+  }
+
+  // Add the Game Over text
+  fill(255, 0, 0);
+  textSize(50);
+  textAlign(CENTER, CENTER);
+  text("GAME OVER", width / 2, height / 2 - 40);
+  textSize(25);
+  text("A man got you, oh no!", width / 2, height / 2);
+  textSize(20);
+  text("Press ENTER to return to the menu", width / 2, height / 2 + 40);
+}
+
+
 
 function titleArt(){
   noStroke();
@@ -985,300 +981,13 @@ function titleArt(){
   rect(820, 225, 5, 5);
   }
 
-function drink(){
-  translate(this.x, this.y, this.size, this.size);
-  noStroke();
-  // color for the glass
-  fill(151, 157, 172);
-  rect(180, 120, 170, 100);
-  rect(200, 110, 120, 10);
-  rect(190, 220, 140, 140);
-
-  fill(125, 133, 151);
-  rect(190, 270, 140, 90);
-  rect(210, 360, 100, 10);
-
-  //drink color
-  fill(201, 24, 74);
-  rect(210, 310, 100, 40);
-  rect(200, 220, 120, 90);
-
-  fill(255, 117, 143);
-  rect(200, 220, 120, 90);
-  rect(260, 310, 40, 10);
-
-  fill(255, 179, 193);
-  rect(190, 160, 140, 60);
-  rect(210, 220, 50, 10);
-  rect(290, 220, 10, 10);
-  rect(205, 150, 40, 10);
-  rect(310, 150, 20, 10);
-
-  fill(201, 24, 74);
-  rect(220, 300, 20, 10);
-  rect(300, 290, 10, 10);
-
-  //outline
-  fill(0, 18, 31);
-  rect(200, 100, 120, 10);
-  rect(180, 110, 20, 10);
-  rect(320, 110, 20, 10);
-  rect(170, 120, 10, 100);
-  rect(340, 120, 10, 100);
-  rect(180, 220, 10, 90);
-  rect(330, 220, 10, 90);
-  rect(190, 310, 10, 50);
-  rect(320, 310, 10, 50);
-  rect(200, 360, 10, 10);
-  rect(310, 360, 10, 10);
-  rect(210, 370, 100, 10);
-
-  rect(280, 140, 30, 10);
-  rect(210, 140, 10, 10);
-
-  //bubble
-  fill(255, 240, 243);
-  rect(290, 110, 10, 10);
-  rect(280, 100, 10, 10);
-  rect(300, 100, 10, 10);
-  rect(290, 90, 10, 10);
-  rect(270, 60, 10, 10);
-
-  fill(255, 204, 213);
-  rect(220, 120, 10, 10);
-
-  //glass
-  fill(255, 240, 243, 210);
-  rect(210, 160, 40, 60);
-  rect(260, 220, 30, 70);
-}
-
-function drawMap() {
-  noStroke();
-
-  //floor
-  fill(60);
-  rect(60, 60, 900, 550);
-
-  fill(73, 80, 87);
-  rect(150, 100, 5, 10);
-  rect(250, 150, 5, 10);
-  rect(110, 230, 5, 10);
-  rect(310, 290, 5, 10);
-  rect(210, 500, 5, 10);
-  rect(610, 200, 5, 10);
-  rect(710, 130, 5, 10);
-  rect(540, 330, 5, 10);
-  rect(800, 430, 5, 10);
-  rect(890, 530, 5, 10);
-
-  //bar disk
-  fill(100);
-  rect(50, 120, 50, 320);
-
-  fill(25, 140);
-  rect(150, 120, 50, 320);
-
-  //drinks on the bar
-  fill(35);
-  rect(80, 140, 10, 5);
-  rect(75, 145, 20, 10);
-  rect(80, 155, 10, 5);
-
-  fill(25);
-  rect(75, 170, 15, 5);
-  rect(70, 175, 25, 10);
-  rect(75, 185, 15, 5);
-
-  fill(71);
-  rect(80, 390, 10, 5);
-  rect(75, 395, 20, 10);
-  rect(80, 405, 10, 5);
-
-  //stadning close to bar
-  fill(100, 110);
-  rect(290, 120, 200, 50);
-  fill(100);
-  rect(240, 60, 300, 70);
-
-  //standing close to exit
-  fill(100);
-  rect(870, 60, 80, 250);
-
-  fill(100, 110);
-  rect(830, 140, 40, 100);
-
-  //pillar
-  fill(0);
-  rect(300, 335, 70, 70);
-
-  //table
-  fill(100);
-  rect(250, 550, 420, 50);
-
-  //chairs
-  rect(300, 500, 20, 10);
-  rect(290, 510, 40, 20);
-  rect(300, 530, 20, 10);
-  rect(320, 505, 5, 5);
-  rect(295, 505, 5, 5);
-  rect(295, 530, 5, 5);
-  rect(320, 530, 5, 5);
-
-  rect(400, 500, 20, 10);
-  rect(390, 510, 40, 20);
-  rect(400, 530, 20, 10);
-  rect(420, 505, 5, 5);
-  rect(395, 505, 5, 5);
-  rect(395, 530, 5, 5);
-  rect(420, 530, 5, 5);
 
 
-  rect(500, 500, 20, 10);
-  rect(490, 510, 40, 20);
-  rect(500, 530, 20, 10);
-  rect(520, 505, 5, 5);
-  rect(495, 505, 5, 5);
-  rect(495, 530, 5, 5);
-  rect(520, 530, 5, 5);
-
-  rect(600, 500, 20, 10);
-  rect(590, 510, 40, 20);
-  rect(600, 530, 20, 10);
-  rect(620, 505, 5, 5);
-  rect(595, 505, 5, 5);
-  rect(595, 530, 5, 5);
-  rect(620, 530, 5, 5);
-
-
-  //bar spegel
-  fill(0);
-  rect(60, 130, 10, 300);
-
-  //doors
-  rect(600, 60, 10, 5);
-  rect(800, 60, 10, 5);
-
-  rect(945, 310, 5, 5);
-  rect(945, 410, 5, 5);
-
-  rect(945, 430, 5, 5);
-  rect(945, 500, 5, 5);
-
-  //outline club
-  fill(0);
-  rect(50, 50, 10, 550);
-  rect(950, 50, 10, 550);
-  rect(50, 600, 910, 10);
-  rect(50, 50, 910, 10);
-
-  fill(144, 103, 198, 50);
-  rect(0,0,1000, 650);
-
-  fill(144, 103, 198);
-  rect(50, 30, 10, 90);
-  rect(45, 35, 5, 90);
-  rect(40, 45, 5, 80);
-  rect(35, 55, 5, 70);
-  rect(5, 65, 100, 10);
-  rect(0, 70, 100, 5);
-  rect(5, 75, 100, 5);
-  rect(10, 80, 90, 5);
-  rect(15, 85, 80, 5);
-  rect(20, 90, 70, 5);
-  rect(25, 95, 60, 10);
-  rect(20, 105, 70, 10);
-  rect(15, 115, 80, 10);
-  rect(10, 125, 20, 10);
-  rect(10, 135, 15, 5);
-  rect(25, 130, 10, 5);
-  rect(35, 125, 10, 5);
-  rect(45, 120, 20, 5);
-  rect(65, 125, 30, 5);
-  rect(75, 130, 20, 5);
-  rect(85, 135, 15, 5);
-  rect(95, 125, 5, 10);
-  rect(90, 115, 5, 10);
-  rect(85, 105, 5, 10);
-  rect(80, 95, 5, 10);
-  rect(85, 90, 5, 5);
-  rect(90, 85, 5, 5);
-  rect(95, 80, 5, 5);
-  rect(100, 75, 5, 5);
-  rect(105, 70, 5, 5);
-  rect(60, 35, 5, 30);
-  rect(65, 45, 5, 20);
-  rect(70, 55, 5, 10);
-  rect(75, 65, 30, 5);
-  rect(30, 125, 5, 5);
-
-  translate(880, 460);
-  fill(144, 103, 198);
-  rect(50, 30, 10, 90);
-  rect(45, 35, 5, 90);
-  rect(40, 45, 5, 80);
-  rect(35, 55, 5, 70);
-  rect(5, 65, 100, 10);
-  rect(0, 70, 100, 5);
-  rect(5, 75, 100, 5);
-  rect(10, 80, 90, 5);
-  rect(15, 85, 80, 5);
-  rect(20, 90, 70, 5);
-  rect(25, 95, 60, 10);
-  rect(20, 105, 70, 10);
-  rect(15, 115, 80, 10);
-  rect(10, 125, 20, 10);
-  rect(10, 135, 15, 5);
-  rect(25, 130, 10, 5);
-  rect(35, 125, 10, 5);
-  rect(45, 120, 20, 5);
-  rect(65, 125, 30, 5);
-  rect(75, 130, 20, 5);
-  rect(85, 135, 15, 5);
-  rect(95, 125, 5, 10);
-  rect(90, 115, 5, 10);
-  rect(85, 105, 5, 10);
-  rect(80, 95, 5, 10);
-  rect(85, 90, 5, 5);
-  rect(90, 85, 5, 5);
-  rect(95, 80, 5, 5);
-  rect(100, 75, 5, 5);
-  rect(105, 70, 5, 5);
-  rect(60, 35, 5, 30);
-  rect(65, 45, 5, 20);
-  rect(70, 55, 5, 10);
-  rect(75, 65, 30, 5);
-  rect(30, 125, 5, 5);
-    
-}
-
-
-function draw() {
-  clear();
-  background(30);
-
-  if (mode === 0) {
-    startScreen();
-  } else if (mode === 1) {
-    menu();
-  } else if (mode === 2) {
-    collectDrinks();
-  } else if (mode === 3) {
-    getReadyScreen();
-  } else if (mode === 4) {
-    danceFloor();
-  } else if (mode === 5) {
-    gameCompleted();
-  } else if (mode === 6) {
-    gameOver();
-  } else {
-    fill(255, 0, 0);
-    textSize(40);
-    text("Error: Invalid Mode", width / 2, height / 2);
+  function preload() {
+    specialDrinkImage = loadImage("special.png");
+    normalDrinkImage = loadImage("drink.png");
+    enemyImage = loadImage("man_enemy.png"); 
+    paulinaImage = loadImage("paulina.png");
+    agnesImage = loadImage("agnes.png");
   }
-
- /* if (mode === 2 && player) {
-    player.update();
-    player.show();
-  }*/
-}
+  
