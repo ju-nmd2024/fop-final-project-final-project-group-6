@@ -10,7 +10,7 @@ drawPaulina();
 
 function drawPaulina() {
     noStroke();
-    translate(xCharacter,yCharacter);
+    translate(x,y);
 
     //face color
     fill(255, 209, 173);

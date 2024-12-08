@@ -10,7 +10,7 @@ let speed = -1.7;
 function drawAgnesUnlocked(){
     push();
     noStroke();
-    translate(xCharacter, yCharacter);
+    translate(x, y);
 
     //face color
     fill(214, 159, 126);
