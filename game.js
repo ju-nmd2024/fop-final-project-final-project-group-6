@@ -129,8 +129,8 @@ class Drink {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.size = 80;  // Size of the drink
-    this.widthFactor = 1.5;  // Size multiplier for the drink
+    this.size = 80;
+    this.widthFactor = 1.5;
     this.isSpecial = random() < 0.2;  // 20% chance for special drinks
   }
 
@@ -140,44 +140,39 @@ class Drink {
 
     imageMode(CENTER); 
     if (this.isSpecial) {
+      // Only display the special drink image if it's loaded
       if (specialDrinkImage) {
         image(specialDrinkImage, this.x, this.y, drinkWidth, drinkHeight);
       } else {
-        fill(255, 0, 0); // Fallback color
+        fill(255, 0, 0); // Fallback color for special drink if the image isn't loaded
         ellipse(this.x, this.y, drinkWidth, drinkHeight); // Fallback shape
       }
     } else {
+      // Only display the normal drink image if it's loaded
       if (normalDrinkImage) {
         image(normalDrinkImage, this.x, this.y, drinkWidth, drinkHeight);
       } else {
-        fill(0, 255, 0); // Fallback color
+        fill(0, 255, 0); // Fallback color for normal drink if the image isn't loaded
         ellipse(this.x, this.y, drinkWidth, drinkHeight); // Fallback shape
       }
     }
   }
 
   collect(player) {
+    // If player is null, return 0 to avoid errors
+    if (!player) {
+      return 0;
+    }
+
     let drinkWidth = this.size * this.widthFactor;
     let drinkHeight = this.size;
+    let playerRadius = 25; // Assuming player is 50px in diameter, so radius is 25px
 
-    // Calculate the bounds for both player and drink
-    let playerLeft = player.x - 20;
-    let playerRight = player.x + 20;
-    let playerTop = player.y - 20;
-    let playerBottom = player.y + 20;
+    // Check if the player's center is close to the drink's center (simplified collision detection)
+    let distance = dist(this.x, this.y, player.x, player.y);  // Calculate distance between player and drink
 
-    let drinkLeft = this.x - drinkWidth / 2;
-    let drinkRight = this.x + drinkWidth / 2;
-    let drinkTop = this.y - drinkHeight / 2;
-    let drinkBottom = this.y + drinkHeight / 2;
-
-    // Check if player collides with the drink
-    if (
-      playerRight > drinkLeft &&
-      playerLeft < drinkRight &&
-      playerBottom > drinkTop &&
-      playerTop < drinkBottom
-    ) {
+    // If the distance is smaller than the sum of radii, consider it collected
+    if (distance < (drinkWidth / 2 + playerRadius)) {
       // If it's a special drink, return 2 points; otherwise, 1 point
       return this.isSpecial ? 2 : 1;
     }
