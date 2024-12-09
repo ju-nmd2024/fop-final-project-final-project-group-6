@@ -30,14 +30,15 @@ let paulinaHeightFactor = 5;
 let agnesImage;
 let speedMultiplier = 1;
 let agnesSpeed = 5; 
+let gameOverMessage = "GAME OVER";
 
 
 class Boundary {
   constructor(x, y, w, h, speed, radius, centerX, centerY, direction) {
     this.x = x;          
     this.y = y;           
-    this.w = w;          
-    this.h = h;           
+    this.w = w;          // Width of the enemy (man)
+    this.h = h;          // Height of the enemy (man)
     this.speed = speed; 
     this.radius = radius; 
     this.centerX = centerX; 
@@ -47,14 +48,14 @@ class Boundary {
   }
 
   update() {
-    // circular motion
+    // Circular motion
     this.angle += this.speed * this.direction;  
 
-    //angle
+    // Update position based on the angle
     this.x = this.centerX + this.radius * cos(this.angle); 
     this.y = this.centerY + this.radius * sin(this.angle);
 
-    // enemy screen bounds
+    // Keep the enemy within the canvas boundaries
     this.x = constrain(this.x, 0, width);
     this.y = constrain(this.y, 0, height);
   }
@@ -62,12 +63,17 @@ class Boundary {
   show() {
     if (enemyImage) {
       imageMode(CENTER);
-      image(enemyImage, this.x, this.y, this.w, this.h);
+  
+      let xOffset = 40;  // You can experiment with this value to get the right alignment
+  
+      // Draw the image with adjusted position, making it longer on the left
+      image(enemyImage, this.x - xOffset, this.y, this.w, this.h); // Moves the image 20px to the right
     } else {
       fill(255, 0, 0, 150);
-      rect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
+      rect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h); // Default red rectangle for debugging
     }
   }
+  
 
   collide(player) {
     let playerLeft = player.x - 20;
@@ -75,6 +81,7 @@ class Boundary {
     let playerTop = player.y - 20;
     let playerBottom = player.y + 20;
 
+    // Adjust collision detection based on the actual size of the enemy
     return (
       playerRight > this.x - this.w / 2 &&
       playerLeft < this.x + this.w / 2 &&
@@ -122,10 +129,9 @@ class Drink {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.size = 80;
-    this.widthFactor = 1.5;
+    this.size = 80;  // Size of the drink
+    this.widthFactor = 1.5;  // Size multiplier for the drink
     this.isSpecial = random() < 0.2;  // 20% chance for special drinks
-    console.log(this.isSpecial ? 'Special Drink' : 'Normal Drink'); // Debugging line
   }
 
   show() {
@@ -134,9 +140,19 @@ class Drink {
 
     imageMode(CENTER); 
     if (this.isSpecial) {
-      image(specialDrinkImage, this.x, this.y, drinkWidth, drinkHeight);
+      if (specialDrinkImage) {
+        image(specialDrinkImage, this.x, this.y, drinkWidth, drinkHeight);
+      } else {
+        fill(255, 0, 0); // Fallback color
+        ellipse(this.x, this.y, drinkWidth, drinkHeight); // Fallback shape
+      }
     } else {
-      image(normalDrinkImage, this.x, this.y, drinkWidth, drinkHeight);
+      if (normalDrinkImage) {
+        image(normalDrinkImage, this.x, this.y, drinkWidth, drinkHeight);
+      } else {
+        fill(0, 255, 0); // Fallback color
+        ellipse(this.x, this.y, drinkWidth, drinkHeight); // Fallback shape
+      }
     }
   }
 
@@ -144,20 +160,29 @@ class Drink {
     let drinkWidth = this.size * this.widthFactor;
     let drinkHeight = this.size;
 
-    // Collision detection
-    let halfDrinkWidth = drinkWidth / 2;
-    let halfDrinkHeight = drinkHeight / 2;
+    // Calculate the bounds for both player and drink
+    let playerLeft = player.x - 20;
+    let playerRight = player.x + 20;
+    let playerTop = player.y - 20;
+    let playerBottom = player.y + 20;
 
+    let drinkLeft = this.x - drinkWidth / 2;
+    let drinkRight = this.x + drinkWidth / 2;
+    let drinkTop = this.y - drinkHeight / 2;
+    let drinkBottom = this.y + drinkHeight / 2;
+
+    // Check if player collides with the drink
     if (
-      player.x + 20 > this.x - halfDrinkWidth &&
-      player.x - 20 < this.x + halfDrinkWidth &&
-      player.y + 20 > this.y - halfDrinkHeight &&
-      player.y - 20 < this.y + halfDrinkHeight    
+      playerRight > drinkLeft &&
+      playerLeft < drinkRight &&
+      playerBottom > drinkTop &&
+      playerTop < drinkBottom
     ) {
-      return true;
+      // If it's a special drink, return 2 points; otherwise, 1 point
+      return this.isSpecial ? 2 : 1;
     }
 
-    return false;
+    return 0; // No points if not collected
   }
 }
 
@@ -256,30 +281,39 @@ function displayCollectDrinksUI() {
 
 function keyPressed() {
   if (keyCode === ENTER) {
-    if (mode === 0) {
-      mode = 1; // Start the game
-    } else if (mode === 5 || mode === 6 || mode === 9) { // After Game Over screens
+    if (mode === 9) { // If we're in Game Over mode (caught by the man)
+      resetGame(); // Reset the game state
       mode = 1; // Return to the menu
-      resetGame(); // Reset game state for a fresh start
+    }
+    else if (mode === 0) {
+      mode = 1; // Start the game from the menu
+    } else if (mode === 5) {  // After game completion
+      mode = 1; // Return to the menu
+      resetGame(); // Reset the game state
     }
   }
 
-  // Menu mode
+  // Menu mode (Selecting Paulina or Agnes)
   else if (mode === 1) {
-    if (key === "2") { // Paulina
-      player = new Player("Paulina", width - 50, height / 2, 3); // Start at far right
+    if (key === "2") { // Paulina selected
+      player = new Player("Paulina", width - 50, height / 2, 3); // Set speed and position
       mode = 2; // Start drink collection for Paulina
-      startDrinkChallenge(); // Start drink challenge for Paulina
+      startDrinkChallenge();
       resetGame(); // Reset game state before starting
-    } else if (key === "3" && agnesUnlocked) { // Agnes
-      player = new Player("Agnes", width - 50, height / 2, agnesSpeed); // Set speed for Agnes
+    } else if (key === "3" && agnesUnlocked) { // Agnes selected
+      player = new Player("Agnes", width - 50, height / 2, agnesSpeed); // Set speed and position
       mode = 2; // Start drink collection for Agnes
       startDrinkChallenge();
       resetGame(); // Reset game state before starting
     }
   }
 
-  // Other modes like Dance Floor mode
+  // Space key handling for Get Ready screen
+  else if (mode === 3 && keyCode === 32) { // Space key to start dance floor stage
+    mode = 4;
+    resetDanceFloor(); // Reset the beat game state before transitioning
+  }
+  // Dance Floor mode (the actual beat game)
   else if (mode === 4) {
     let match = false;
     for (let i = beats.length - 1; i >= 0; i--) {
@@ -300,6 +334,33 @@ function keyPressed() {
 
     if (!match) {
       triggerFeedback("miss");
+    }
+  }
+
+  // Game Over (Man Screen)
+  else if (mode === 9 && keyCode === ENTER) {
+    mode = 1; // Return to menu
+    resetGame(); // Reset game state for fresh start
+  }
+}
+
+
+function triggerFeedback(state) {
+  feedbackState = state;
+  feedbackAlpha = 255;
+
+  if (state === "miss") {
+    beatScore = max(0, beatScore - 1); // Decrease 1 point for a miss
+    if (beatScore <= 0) {
+      mode = 6; // Game Over if no points are left
+      clearInterval(timerInterval);  // Stop the timer
+      resetDanceFloor(); // Reset beats and other dance-related variables
+      gameOverMessage = "Go home, your bad at dancing";
+    }
+  } else if (state === "win") {
+    beatScore++;  // Gain 1 point for a correct beat
+    if (beatScore >= 20) {  // End game if 20 beats are hit
+      gameCompleted(); // Transition to game completion
     }
   }
 }
@@ -334,16 +395,63 @@ function menu() {
 }
 
 
+function resetGame() {
+  // Reset game state variables like score, drinks, beats, etc.
+  drinks = [];
+  beats = [];
+  score = 0;
+  drinkScore = 0;
+  beatScore = 0;
+  drinksCollected = 0;
+  timer = 0;  // Reset the timer here to ensure correct starting value
+
+  // Reset the enemies (call boundaries creation based on the selected character)
+  boundaries = [];
+  let paulinaSpeed = 0.02; // Paulina's speed
+  let agnesSpeed = 0.05;   // Agnes' speed
+
+  // Set up enemies based on the selected character
+  if (player && player.name === "Paulina") {
+    boundaries.push(new Boundary(200, 300, 80, 100, paulinaSpeed, 150, width / 2 + 100, height / 2, 1));  // Enemy 1 for Paulina
+    boundaries.push(new Boundary(500, 200, 80, 100, paulinaSpeed, 100, width / 4 + 100, height / 4, -1));  // Enemy 2 for Paulina
+  } else if (player && player.name === "Agnes") {
+    boundaries.push(new Boundary(200, 300, 80, 100, agnesSpeed, 150, width / 2 + 100, height / 2, 1));  // Enemy 1 for Agnes
+    boundaries.push(new Boundary(500, 200, 80, 100, agnesSpeed, 100, width / 4 + 100, height / 4, -1));  // Enemy 2 for Agnes
+  }
+
+  // Reset the UI and other variables
+  resetGameUI();
+}
+
+function resetGameUI() {
+  // Reset timer and any UI elements like score, collected drinks, etc.
+  drinksCollected = 0;
+  drinkScore = 0;
+  beatScore = 0;
+
+  // Reset timer based on the player
+  if (player && player.name === "Paulina") {
+    timer = 60;  // 60 seconds for Paulina
+  } else if (player && player.name === "Agnes") {
+    timer = 40;  // 40 seconds for Agnes
+  } else {
+    timer = 30;  // Default to 30 seconds if no player is selected
+  }
+}
+
 function startDrinkChallenge() {
   drinksCollected = 0;
   score = 0; // Reset score to 0
+  timer = 0;  // Reset the timer before setting a new value
 
-  if (player.name === "Agnes") {
-    timer = 45;  // 45 seconds for Agnes
-  } else {
-    timer = 60;  // 60 seconds for Paulina
+  // Set timer based on the player
+  if (player.name === "Paulina") {
+    timer = 60;  // 60 seconds for Paulina (1 minute)
+  } else if (player.name === "Agnes") {
+    timer = 40;  // 40 seconds for Agnes
   }
 
+  // Start the timer countdown
   timerInterval = setInterval(() => {
     timer--;
     if (timer <= 0) {
@@ -366,7 +474,6 @@ function checkChallengeOutcome() {
   player = null; //removes the player
 }
 
-
 function getReadyScreen() {
   fill(255);
   textSize(40);
@@ -378,6 +485,191 @@ function getReadyScreen() {
     resetDanceFloor(); // Reset the beat game before transitioning
     mode = 4; 
   }
+}
+
+function collectDrinks() {
+  background(0); // Clear the screen and set background color
+  backgroundMap(); // Draw the background map
+
+  // Update and show the player
+  if (player) {
+    player.update();
+    player.show();
+  }
+
+  // Check for collisions with the boundaries (man)
+  for (let boundary of boundaries) {
+    boundary.update();  
+    boundary.show();    
+
+    if (player && boundary.collide(player)) {
+      mode = 9; 
+      clearInterval(timerInterval); 
+      return; 
+    }
+  }
+
+  // Limit 3 drinks 
+  if (drinks.length < 3 && frameCount % 45 === 0) {
+    drinks.push(new Drink(random(100, width - 100), random(100, height - 100))); 
+  }
+
+  // Loop through the drinks and check if the player collects any
+  for (let i = drinks.length - 1; i >= 0; i--) {
+    let drink = drinks[i];
+    drink.show(); // Show the drink
+
+    // Check if the player collects the drink
+    let points = drink.collect(player);
+    if (points > 0) {
+      drinks.splice(i, 1); // Remove the collected drink
+      drinksCollected++; 
+
+      score += points; // Add points based on the drink type (special or regular)
+
+      // If the player has collected enough drinks, check challenge outcome
+      if (drinksCollected >= 14) {
+        checkChallengeOutcome(); 
+      }
+    }
+  }
+
+  // Display game UI (drinks collected, time left)
+  fill(255);
+  textSize(20);
+  textAlign(RIGHT, TOP);
+  text(`Drinks Collected: ${drinksCollected}`, width - 20, 20); // Display number of drinks collected
+  text(`Time Left: ${timer}s`, width - 20, 50); // Display time left in the challenge
+}
+
+
+function danceFloor() {
+  drawGameArea();
+
+  // Set the beat interval based on difficulty
+  let beatInterval = agnesUnlocked ? 500 : 1000;
+
+  // Check if it's time to add a new beat
+  if (millis() - lastBeatTime > beatInterval) {
+    beats.push(new Beat(random([width / 4, (width / 4) * 2, (width / 4) * 3]), random(["UP", "DOWN", "LEFT", "RIGHT"])));
+    lastBeatTime = millis();
+  }
+
+  // Update and display each beat
+  for (let i = beats.length - 1; i >= 0; i--) {
+    beats[i].update();
+    beats[i].show();
+
+    // Remove the beat if it passes the bottom of the screen
+    if (beats[i].y > height) {
+      beats.splice(i, 1);
+      triggerFeedback("miss"); // Miss if the beat goes off-screen
+    }
+  }
+
+  // Show feedback for correct or incorrect actions
+  if (feedbackAlpha > 0) {
+    fill(feedbackState === "win" ? "green" : "red");
+    textSize(50);
+    text(feedbackState === "win" ? "Good!" : "Miss!", width / 2, height / 2);
+    feedbackAlpha -= 5;
+  }
+
+  // Display the beat game score
+  fill(255);
+  textSize(20);
+  text(`Score: ${beatScore}`, width - 80, 30);
+}
+
+function resetDanceFloor() {
+  beats = [];        // Clear all existing beats
+  lastBeatTime = 0;  // Reset beat timing
+  beatScore = 0;     // Reset beat score to 0
+  feedbackAlpha = 0; // Reset feedback animation
+  feedbackState = null; // Clear previous feedback
+}
+
+function gameOver() {
+  fill(255);
+  textSize(40);
+  text(gameOverMessage, width / 2, height / 2 - 40); // Display "Game Over" message
+  textSize(20);
+  text("Press ENTER to return to the menu", width / 2, height / 2 + 30); // Prompt to return to the menu
+  
+  // Here, when the player presses ENTER, reset the game and return to the menu.
+  if (keyCode === ENTER) {
+    resetGame(); // Reset game before transitioning back to the menu
+    mode = 1; // Return to menu
+  }
+}
+function gameCompleted() {
+  fill(255);
+  textSize(30);
+  text("You Win!", width / 2, height / 2 - 20); // Display "You Win!" message
+
+  // Unlock Agnes if not already unlocked
+  if (!agnesUnlocked) {
+    agnesUnlocked = true;  // Unlock Agnes
+    text("Agnes is now unlocked!", width / 2, height / 2 + 20);  // Show Agnes unlocked message
+  }
+
+  textSize(20);
+  text("Press ENTER to return to the menu.", width / 2, height / 2 + 60);  // Prompt to return to the menu
+
+  // Handle ENTER key press to return to menu
+  if (keyIsPressed && keyCode === ENTER) {
+    mode = 1;  // Return to the menu
+    resetGame();  // Reset the game state for a fresh start
+  }
+
+  mode = 5;  // Transition to the completed state
+}
+
+
+function drawGameArea() {
+  fill(50);
+  rect(0, 0, width, height);
+  stroke(255);
+  for (let i = 0; i < 5; i++) {
+    line((width / 4) * i, 0, (width / 4) * i, height);
+  }
+  fill(200, 200, 200, 100);
+  rect(0, height - 100, width, 50);
+}
+
+function gameOver() {
+  fill(255);
+  textSize(40);
+  text("GAME OVER", width / 2, height / 2 - 40); // Game Over text
+  textSize(20);
+  text("Press 'ENTER' to return to the menu", width / 2, height / 2 + 30);
+  
+  // Here, when the player presses ENTER, reset the game and return to the menu.
+  if (keyCode === ENTER) {
+    resetGame(); // Reset game before transitioning back to the menu
+    mode = 1; // Return to menu
+  }
+}
+
+
+function gameOverMan() {
+  // Draw the background image stretched to full screen
+  if (enemyImage) {
+    imageMode(CORNER);
+    image(enemyImage, 0, 0, width, height); // Stretch the boundary image
+  } else {
+    background(50); // Fallback background color if image fails to load
+  }
+
+  // Add the Game Over text
+  fill(255, 0, 0);
+  textSize(50);
+  textAlign(CENTER, CENTER);
+  text("GAME OVER", width / 2, height / 2 - 40);
+  textSize(25);
+  text("A man got you, oh no!", width / 2, height / 2);
+  textSize(20);
+  text("Press ENTER to return to the menu", width / 2, height / 2 + 40);
 }
 
 function backgroundMap(){
@@ -581,193 +873,6 @@ function backgroundMap(){
   rect(30, 125, 5, 5);
   pop();
 }
-
-function collectDrinks() {
-  background(0); // Clear the screen and set background color
-  backgroundMap(); // Draw the background map
-
-  // Update and show the player
-  if (player) {
-    player.update();
-    player.show();
-  }
-
-  // Update and display all boundaries (enemies)
-  for (let boundary of boundaries) {
-    boundary.update();  // Update enemy's position
-    boundary.show();    // Display enemy
-
-    // If player collides with an enemy, trigger Game Over
-    if (player && boundary.collide(player)) {
-      mode = 9; // Switch to Game Over mode (man collision)
-      clearInterval(timerInterval); // Stop the timer
-      return; // Stop further execution (no more game actions)
-    }
-  }
-
-  // Spawn drinks at a steady interval, limiting the number of drinks to 3
-  if (drinks.length < 3 && frameCount % 45 === 0) {
-    drinks.push(new Drink(random(100, width - 100), random(100, height - 100))); // Random positions for drinks
-  }
-
-  // Loop through drinks and check if they are collected by the player
-  for (let i = drinks.length - 1; i >= 0; i--) {
-    let drink = drinks[i];
-    drink.show(); // Show the drink
-
-    // Check if the player collects the drink
-    if (player && drink.collect(player)) {
-      drinks.splice(i, 1); // Remove the collected drink
-      drinksCollected++; // Increment the drinks collected counter
-
-      // Update score based on drink type
-      if (drink.isSpecial) {
-        console.log('Special drink collected!'); // Debugging line
-        drinkScore += 2; // Special drinks give extra points
-      } else {
-        drinkScore++; // Regular drinks give 1 point
-      }
-
-      // If player collects enough drinks, check challenge outcome
-      if (drinksCollected >= 5) {
-        checkChallengeOutcome(); // Transition to the next phase
-      }
-    }
-  }
-
-  // Display game UI (drinks collected, time left)
-  fill(255);
-  textSize(20);
-  textAlign(RIGHT, TOP);
-  text(`Drinks Collected: ${drinksCollected}`, width - 20, 20); // Display number of drinks collected
-  text(`Time Left: ${timer}s`, width - 20, 50); // Display time left in the challenge
-}
-
-function danceFloor() {
-  drawGameArea();
-
-  // Set the beat interval based on difficulty
-  let beatInterval = agnesUnlocked ? 500 : 1000;
-
-  // Check if it's time to add a new beat
-  if (millis() - lastBeatTime > beatInterval) {
-    beats.push(new Beat(random([width / 4, (width / 4) * 2, (width / 4) * 3]), random(["UP", "DOWN", "LEFT", "RIGHT"])));
-    lastBeatTime = millis();
-  }
-
-  // Update and display each beat
-  for (let i = beats.length - 1; i >= 0; i--) {
-    beats[i].update();
-    beats[i].show();
-
-    // Remove the beat if it passes the bottom of the screen
-    if (beats[i].y > height) {
-      beats.splice(i, 1);
-      triggerFeedback("miss"); // Miss if the beat goes off-screen
-    }
-  }
-
-  // Show feedback for correct or incorrect actions
-  if (feedbackAlpha > 0) {
-    fill(feedbackState === "win" ? "green" : "red");
-    textSize(50);
-    text(feedbackState === "win" ? "Good!" : "Miss!", width / 2, height / 2);
-    feedbackAlpha -= 5;
-  }
-
-  // Display the beat game score
-  fill(255);
-  textSize(20);
-  text(`Score: ${beatScore}`, width - 80, 30);
-}
-
-
-// This function will reset all the necessary variables for the dance game.
-function resetDanceFloor() {
-  beats = [];       // Clear all existing beats
-  lastBeatTime = 0; // Reset beat timing
-  beatScore = 0;    // Reset beat score to 0
-  feedbackAlpha = 0; // Reset feedback animation
-  feedbackState = null; // Clear previous feedback
-}
-
-function gameOver() {
-  fill(255);
-  textSize(40);
-  text("GAME OVER", width / 2, height / 2 - 40); // Game Over text
-  textSize(20);
-  text("Press ENTER to return to the menu", width / 2, height / 2 + 30); // Prompt to return to the menu
-  
-  if (keyCode === ENTER) {
-    resetGame();  // Reset game before transitioning back to the menu
-    mode = 1;  // Return to the menu
-  }
-}
-
-
-function gameCompleted() {
-  fill(255);
-  textSize(30);
-  text("You Win!", width / 2, height / 2 - 20); // Display "You Win!" message
-  
-  if (!agnesUnlocked) {
-    agnesUnlocked = true;  // Unlock Agnes if not already unlocked
-    text("Agnes is now unlocked!", width / 2, height / 2 + 20);  // Show Agnes unlocked message
-  }
-  
-  textSize(20);
-  text("Press ENTER to return to the menu.", width / 2, height / 2 + 60);  // Prompt to return to the menu
-}
-
-
-function drawGameArea() {
-  fill(50);
-  rect(0, 0, width, height);
-  stroke(255);
-  for (let i = 0; i < 5; i++) {
-    line((width / 4) * i, 0, (width / 4) * i, height);
-  }
-  fill(200, 200, 200, 100);
-  rect(0, height - 100, width, 50);
-}
-
-function gameOver() {
-  fill(255);
-  textSize(40);
-  text("GAME OVER", width / 2, height / 2 - 40); // Game Over text
-  textSize(20);
-  text("Press 'ENTER' to return to the menu", width / 2, height / 2 + 30);
-  
-  // Here, when the player presses ENTER, reset the game and return to the menu.
-  if (keyCode === ENTER) {
-    resetGame(); // Reset game before transitioning back to the menu
-    mode = 1; // Return to menu
-  }
-}
-
-
-function gameOverMan() {
-  // Draw the background image stretched to full screen
-  if (enemyImage) {
-    imageMode(CORNER);
-    image(enemyImage, 0, 0, width, height); // Stretch the boundary image
-  } else {
-    background(50); // Fallback background color if image fails to load
-  }
-
-  // Add the Game Over text
-  fill(255, 0, 0);
-  textSize(50);
-  textAlign(CENTER, CENTER);
-  text("GAME OVER", width / 2, height / 2 - 40);
-  textSize(25);
-  text("A man got you, oh no!", width / 2, height / 2);
-  textSize(20);
-  text("Press ENTER to return to the menu", width / 2, height / 2 + 40);
-}
-
-
-
 function titleArt(){
   noStroke();
   //
