@@ -254,7 +254,7 @@ function keyPressed() {
       mode = 1; // menu
     }
     else if (mode === 0) {
-      mode = 1; // Start the game from menu
+      mode = 1; // start game from menu
     } else if (mode === 5) {  // sucessful game compliction
       mode = 1; 
       resetGame(); 
@@ -262,12 +262,12 @@ function keyPressed() {
   }
   // selection player
   else if (mode === 1) {
-    if (key === "2") { // Paulina 
+    if (key === "2") { // paulina 
       player = new Player("Paulina", width - 50, height / 2, 3); 
       mode = 2; 
       startDrinkChallenge();
       resetGame(); 
-    } else if (key === "3" && agnesUnlocked) { // Agnes 
+    } else if (key === "3" && agnesUnlocked) { // agnes 
       player = new Player("Agnes", width - 50, height / 2, agnesSpeed);
       mode = 2; 
       startDrinkChallenge();
@@ -275,12 +275,12 @@ function keyPressed() {
     }
   }
 
-  //  Get Ready screen
-  else if (mode === 3 && keyCode === 32) { // Space 
+  //  get ready screen
+  else if (mode === 3 && keyCode === 32) { // space 
     mode = 4;
     resetDanceFloor(); 
   }
-  // Beats game (dancefloor)
+  // beats game (dancefloor)
   else if (mode === 4) {
     let match = false;
     for (let i = beats.length - 1; i >= 0; i--) {
@@ -292,7 +292,7 @@ function keyPressed() {
           (beats[i].key === "LEFT" && keyCode === LEFT_ARROW) ||
           (beats[i].key === "RIGHT" && keyCode === RIGHT_ARROW))
       ) {
-        beats.splice(i, 1); // Remove beat
+        beats.splice(i, 1); // remove beat
         triggerFeedback("win"); 
         match = true;
         break;
@@ -319,7 +319,7 @@ function triggerFeedback(state) {
   if (state === "miss") {
     beatScore = max(0, beatScore - 1); // score cant go bellow 0
     if (beatScore <= 0) {
-      mode = 6; // Game Over 
+      mode = 6; // game over 
       clearInterval(timerInterval); //stops timer
       resetDanceFloor(); 
       gameOverMessage = "Go home, your bad at dancing";
@@ -347,6 +347,13 @@ function startScreen() {
     maxTextSize
   );
 }
+/*
+sequence of lines 342 to 348 taken from mo.h, George Profenza, 
+& Kevin Workman. (2016, February 2). How to make the size of 
+ellipse to get smaller and bigger in processing automatically. 
+Stack Overflow. https://stackoverflow.com/questions/35156661/how-to-make-the-size-of-ellipse-to-get-smaller-and-bigger-in-processing-automati 
+, reworked by enickles on p5js https://editor.p5js.org/enickles/sketches/SkDt1quAX
+ */
 
 function menu() {
   drinkScore = 0;
@@ -364,7 +371,7 @@ function menu() {
 
 
 function resetGame() {
-  // Reset game variables
+  // reset variables
   drinks = [];
   beats = [];
   score = 0;
@@ -378,7 +385,7 @@ function resetGame() {
 }
 
 function resetGameUI() {
-  // Reset timer and etc. score
+  // reset timer and etc. score
   drinksCollected = 0;
   drinkScore = 0;
   beatScore = 0;
@@ -423,8 +430,8 @@ function getReadyScreen() {
   textSize(20);
   text("Press SPACE to start!", width / 2, height / 2 + 50);
 
-  if (keyIsPressed && keyCode === 32) { // Space key
-    resetDanceFloor(); // Reset the beat game before transitioning
+  if (keyIsPressed && keyCode === 32) { // space key
+    resetDanceFloor(); // reset the beat game before transitioning
     mode = 4; 
   }
 }
@@ -449,18 +456,18 @@ function collectDrinks() {
     }
   }
 
-  // Limit 3 drinks at a time on screen
+  // spawn limit
   if (drinks.length < 3 && frameCount % 45 === 0) {
     drinks.push(new Drink(random(100, width - 100), random(100, height - 100))); 
   }
   for (let i = drinks.length - 1; i >= 0; i--) {
     let drink = drinks[i];
-    drink.show(); // Show the drink
+    drink.show(); 
 
     //  if the player collects the drink
     let points = drink.collect(player);
     if (points > 0) {
-      drinks.splice(i, 1); // Remove 
+      drinks.splice(i, 1); // remove 
       drinksCollected++; 
       score += points; 
 
@@ -470,7 +477,7 @@ function collectDrinks() {
     }
   }
 
-  // Display game UI 
+  // game display
   fill(255);
   textSize(20);
   textAlign(RIGHT, TOP);
@@ -486,12 +493,12 @@ function danceFloor() {
     beats.push(new Beat(random([width / 4, (width / 4) * 2, (width / 4) * 3]), random(["UP", "DOWN", "LEFT", "RIGHT"])));
     lastBeatTime = millis();
   }
-  // Update and display each beat
+  // update, display each beat
   for (let i = beats.length - 1; i >= 0; i--) {
     beats[i].update();
     beats[i].show();
 
-    // Remove beat
+    // remove beat
     if (beats[i].y > height) {
       beats.splice(i, 1);
       triggerFeedback("miss"); //off screen
@@ -504,7 +511,7 @@ function danceFloor() {
     feedbackAlpha -= 5;
   }
 
-  // Display score
+  // display beat score
   fill(255);
   textSize(20);
   text(`Score: ${beatScore}`, width - 80, 30);
@@ -536,7 +543,7 @@ function gameCompleted() {
   textSize(30);
   text("You Win!", width / 2, height / 2 - 20); 
 
-  // Unlock Agnes if not already unlocked
+  // unlock Agnes if not already unlocked
   if (!agnesUnlocked) {
     agnesUnlocked = true;  
     text("Agnes is now unlocked!", width / 2, height / 2 + 20);  
@@ -579,7 +586,7 @@ function gameOver() {
 function gameOverMan() {
   if (enemyImage) {
     imageMode(CORNER);
-    image(enemyImage, 0, 0, width, height); // Stretch 
+    image(enemyImage, 0, 0, width, height); // stretch 
   } else {
     background(50); // if image fails to load
   }
@@ -1012,3 +1019,9 @@ function titleArt(){
     agnesImage = loadImage("agnes.png");
   }
   
+/*  references
+https://chatgpt.com/share/67596d8a-79f0-8009-8959-93677412e7dd
+Issues with drawing the correct artworks in the correct places
+
+
+*/
