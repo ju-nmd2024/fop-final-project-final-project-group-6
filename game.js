@@ -1022,6 +1022,10 @@ function titleArt(){
 /*  references
 https://chatgpt.com/share/67596d8a-79f0-8009-8959-93677412e7dd
 Issues with drawing the correct artworks in the correct places
-
-
+https://www.youtube.com/watch?v=S1jMxo4QI44
+guitar hero mechanic ideas
+https://p5js.org/reference/p5/alpha/
+aplha explained
+https://www.youtube.com/watch?v=_MyPLZSGS3s
+collision detection
 */
