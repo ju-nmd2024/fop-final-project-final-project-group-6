@@ -48,34 +48,38 @@ class Boundary {
     this.direction = direction; 
   }
 
+  // Update method to calculate movement (circular motion or fixed)
   update() {
-    // motion
     this.angle += this.speed * this.direction;  
 
     this.x = this.centerX + this.radius * cos(this.angle); 
     this.y = this.centerY + this.radius * sin(this.angle);
-    // enemy with the canvas boundaries
+    
+    // Constrain boundary to canvas to prevent going out of bounds
     this.x = constrain(this.x, 0, width);
     this.y = constrain(this.y, 0, height);
   }
 
+  // Display the boundary (enemy) using an image if available
   show() {
     if (enemyImage) {
       imageMode(CENTER);
-  
-      let xOffset = 40; 
-
-      image(enemyImage, this.x - xOffset, this.y, this.w, this.h); 
+      image(enemyImage, this.x, this.y, this.w, this.h); 
+    } else {
+      // If the image isn't loaded, draw a simple red rectangle for testing
+      fill(255, 0, 0);
+      rect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
     }
   }
-  
+
+  // Check for collision between the player and the boundary
   collide(player) {
     let playerLeft = player.x - 20;
     let playerRight = player.x + 20;
     let playerTop = player.y - 20;
     let playerBottom = player.y + 20;
 
-    //collision detection based on enemy
+    // Collision detection using the player's bounding box and the boundary's bounding box
     return (
       playerRight > this.x - this.w / 2 &&
       playerLeft < this.x + this.w / 2 &&
@@ -126,21 +130,23 @@ class Drink {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.size = 80;
-    this.widthFactor = 1.5;
-    this.isSpecial = random() < 0.2; 
+    this.size = 80; // Drink size
+    this.widthFactor = 1.5; // Scale factor for width
+    this.isSpecial = random() < 0.2; // 20% chance for special drink
   }
 
   show() {
+    imageMode(CENTER);
+    let drinkWidth = this.size * this.widthFactor; // Calculate drink width
+    let drinkHeight = this.size; // Drink height is the base size
 
-    imageMode(CENTER); 
-    //speical drink (should give 2 points)
     if (this.isSpecial) {
+      // Display special drink
       if (specialDrinkImage) {
         image(specialDrinkImage, this.x, this.y, drinkWidth, drinkHeight);
       }
     } else {
-      //normal drinks 
+      // Display normal drink
       if (normalDrinkImage) {
         image(normalDrinkImage, this.x, this.y, drinkWidth, drinkHeight);
       }
@@ -148,20 +154,21 @@ class Drink {
   }
 
   collect(player) {
-    // return 0 to avoid errors, dont remove!
-    if (!player) {
-      return 0;
+    if (!player) return 0; // Avoid errors if player is undefined
+
+    let distance = dist(this.x, this.y, player.x, player.y);
+    let drinkRadius = this.size / 2;
+
+    // Check if the player collects the drink
+    if (distance < (drinkRadius + playerRadius)) {
+      return this.isSpecial ? 2 : 1; // 2 points for special drink, 1 for normal
     }
 
-    if (distance < (drinkWidth / 2 + playerRadius)) {
-      // If it's a special drink, 2 points
-      return this.isSpecial ? 2 : 1;
-    }
     return 0; // No points if not collected
   }
 }
 
-//second stage of the code
+
 class Beat {
   constructor(x, key) {
     this.x = x;
@@ -197,13 +204,19 @@ function setup() {
   textAlign(CENTER, CENTER);
   mode = 0;
 
-  let paulinaSpeed = 0.02; 
-  let agnesSpeed = 0.05;  
+  // Initialize player
+  player = new Player("Paulina", width / 2, height / 2, 5); // Example: Paulina starts in the middle
 
-  // enemys
-  boundaries.push(new Boundary(200, 300, 80, 100, paulinaSpeed, 150, width / 2 + 100, height / 2, 1));  // Enemy 1 for Paulina
-  boundaries.push(new Boundary(500, 200, 80, 100, paulinaSpeed, 100, width / 4 + 100, height / 4, -1));  // Enemy 2 for Paulina
+  // Initialize drinks
+  for (let i = 0; i < 5; i++) {
+    drinks.push(new Drink(random(50, width - 50), random(50, height - 50)));
+  }
+
+  // Initialize boundaries (enemies)
+  boundaries.push(new Boundary(200, 300, 80, 100, 0.02, 150, width / 2 + 100, height / 2, 1));
+  boundaries.push(new Boundary(500, 200, 80, 100, 0.02, 100, width / 4 + 100, height / 4, -1));
 }
+
 
 function draw() {
   background(0);
@@ -211,9 +224,10 @@ function draw() {
   // show boundaries if mode is 2
   if (mode === 2) {
     for (let boundary of boundaries) {
-      boundary.update();
       boundary.show();
+      boundary.update();
     }
+
   }
   // show player if mode is 2
   if (mode === 2 && player) {
@@ -378,7 +392,6 @@ function resetGame() {
   drinkScore = 0;
   beatScore = 0;
   drinksCollected = 0;
-  timer = 0; 
   boundaries = [];
 
   resetGameUI();
@@ -392,9 +405,6 @@ function resetGameUI() {
 }
 
 function startDrinkChallenge() {
-  drinksCollected = 0;
-  score = 0; 
-  timer = 0;  
 
   if (player.name === "Paulina") {
     timer = 60;  
